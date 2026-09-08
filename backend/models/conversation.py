@@ -21,3 +21,13 @@ class Message(Base):
     role = Column(String)  # user or assistant
     content = Column(Text)
     created_at = Column(DateTime, default=datetime.utcnow)
+
+
+class CityInfoCache(Base):
+    __tablename__ = "city_info_cache"
+
+    query = Column(String, primary_key=True)
+    city = Column(String, nullable=False)
+    country_code = Column(String, nullable=True)
+    payload = Column(Text, nullable=False)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)

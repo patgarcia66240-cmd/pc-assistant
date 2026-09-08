@@ -5,6 +5,8 @@ from config import settings
 from models.conversation import Base
 
 DATABASE_URL = settings.DATABASE_URL
+if DATABASE_URL.startswith("sqlite:///"):
+    DATABASE_URL = DATABASE_URL.replace("sqlite:///", "sqlite+aiosqlite:///", 1)
 
 engine = create_async_engine(
     DATABASE_URL,

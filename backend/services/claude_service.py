@@ -1,32 +1,31 @@
 """Claude API service"""
-from anthropic import Anthropic
 from config import settings
 
 class ClaudeService:
     def __init__(self):
-        self.client = Anthropic(api_key=settings.CLAUDE_API_KEY)
-        self.conversation_history = []
+        self.client = None
+        if settings.CLAUDE_API_KEY:
+            try:
+                from anthropic import AsyncAnthropic
+                self.client = AsyncAnthropic(
+                    api_key=settings.CLAUDE_API_KEY,
+                    base_url=settings.CLAUDE_BASE_URL,
+                )
+            except ImportError:
+                pass
     
     async def chat(self, message: str) -> str:
         """Send message to Claude"""
-        self.conversation_history.append({
-            "role": "user",
-            "content": message
-        })
-        
-        response = self.client.messages.create(
-            model="claude-3-5-sonnet-20241022",
+        if self.client is None:
+            raise RuntimeError("Claude API is not configured")
+
+        response = await self.client.messages.create(
+            model=settings.CLAUDE_MODEL,
             max_tokens=1024,
             system=f"You are {settings.ARIA_NAME}, an AI assistant. Respond in {settings.ARIA_LANGUAGE}.",
-            messages=self.conversation_history
+            messages=[{"role": "user", "content": message}]
         )
         
-        assistant_message = response.content[0].text
-        self.conversation_history.append({
-            "role": "assistant",
-            "content": assistant_message
-        })
-        
-        return assistant_message
+        return response.content[0].text
 
 claude_service = ClaudeService()

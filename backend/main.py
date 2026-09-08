@@ -9,9 +9,11 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.gzip import GZipMiddleware
 import logging
+from db import init_db
+from config import settings
 
 # Import routers
-from routes import chat, system, files, config
+from routes import chat, system, files, config, saints
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -22,6 +24,7 @@ logger = logging.getLogger(__name__)
 async def lifespan(app: FastAPI):
     # Startup
     logger.info("Starting PC Assistant Backend")
+    await init_db()
     yield
     # Shutdown
     logger.info("Shutting down PC Assistant Backend")
@@ -38,7 +41,7 @@ app = FastAPI(
 app.add_middleware(GZipMiddleware, minimum_size=1000)
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # Configured for dev; restrict in production
+    allow_origins=[origin.strip() for origin in settings.CORS_ORIGINS.split(",") if origin.strip()],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -49,6 +52,7 @@ app.include_router(chat.router, prefix="/api/chat", tags=["chat"])
 app.include_router(system.router, prefix="/api/system", tags=["system"])
 app.include_router(files.router, prefix="/api/files", tags=["files"])
 app.include_router(config.router, prefix="/api/config", tags=["config"])
+app.include_router(saints.router, prefix="/api/saints", tags=["saints"])
 
 @app.get("/")
 async def root():
