@@ -1,0 +1,22 @@
+{
+  "personalities": {
+    "assistant": {
+      "name": "ARIA",
+      "avatar": "🤖",
+      "tone": "professional",
+      "language": "fr"
+    },
+    "friendly": {
+      "name": "Alex",
+      "avatar": "😊",
+      "tone": "casual",
+      "language": "fr"
+    },
+    "technical": {
+      "name": "Tech",
+      "avatar": "⚙️",
+      "tone": "detailed",
+      "language": "fr"
+    }
+  }
+}

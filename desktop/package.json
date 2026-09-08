@@ -1,0 +1,14 @@
+{
+  "name": "pc-assistant-desktop",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "dev": "tauri dev",
+    "build": "tauri build"
+  },
+  "devDependencies": {
+    "@tauri-apps/cli": "^1.5.0",
+    "@tauri-apps/api": "^1.5.0"
+  }
+}
