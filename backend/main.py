@@ -13,7 +13,7 @@ from db import init_db
 from config import settings
 
 # Import routers
-from routes import chat, system, files, config, saints
+from routes import chat, system, files, config, saints, city_details
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -53,6 +53,7 @@ app.include_router(system.router, prefix="/api/system", tags=["system"])
 app.include_router(files.router, prefix="/api/files", tags=["files"])
 app.include_router(config.router, prefix="/api/config", tags=["config"])
 app.include_router(saints.router, prefix="/api/saints", tags=["saints"])
+app.include_router(city_details.router, prefix="/api/city-details", tags=["city-details"])
 
 @app.get("/")
 async def root():

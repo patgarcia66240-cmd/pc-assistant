@@ -14,7 +14,15 @@ from services.local_service import (
     is_time_request,
     is_weather_request,
 )
-from services.city_info_service import get_city_info, is_city_info_request
+from services.city_info_service import (
+    get_city_info,
+    is_city_info_request,
+    is_city_refresh_request,
+    is_departement_info_request,
+    is_region_info_request,
+    fetch_departement_info,
+    fetch_region_info,
+)
 
 router = APIRouter()
 
@@ -44,10 +52,44 @@ async def chat(message: ChatMessage):
 
     if is_ram_request(message.message):
         return {"response": get_ram_answer(), "context": message.context, "status": "success", "source": "local", "source_type": "system"}
+    if is_city_refresh_request(message.message):
+        query = re.sub(
+            r"^(?:maj|force|actualiser?|rafra[iî]chis|mets?\s+à\s+jour)\s+infos?(?:\s+sur)?\s+",
+            "",
+            message.message.strip(),
+            flags=re.IGNORECASE,
+        )
+        try:
+            city_info = await get_city_info(query, force_refresh=True)
+        except LookupError as error:
+            raise HTTPException(status_code=404, detail=str(error)) from error
+        except (httpx.HTTPError, IndexError, KeyError) as error:
+            raise HTTPException(status_code=502, detail="City information service unavailable") from error
+        return {"response": f"Informations actualisées sur {city_info['city']}", "data": city_info, "context": message.context, "status": "success", "source": "local", "source_type": "city_info"}
+    if is_departement_info_request(message.message):
+        query = re.sub(r"^(?:infos?|informations?)\s+d[ée]partements?\s+", "", message.message.strip(), flags=re.IGNORECASE)
+        try:
+            dept_info = await fetch_departement_info(query)
+        except LookupError as error:
+            raise HTTPException(status_code=404, detail=str(error)) from error
+        except (httpx.HTTPError, IndexError, KeyError) as error:
+            raise HTTPException(status_code=502, detail="City information service unavailable") from error
+        return {"response": f"Informations sur le département {dept_info['nom']}", "data": dept_info, "context": message.context, "status": "success", "source": "local", "source_type": "departement_info"}
+    if is_region_info_request(message.message):
+        query = re.sub(r"^(?:infos?|informations?)\s+r[ée]gions?\s+", "", message.message.strip(), flags=re.IGNORECASE)
+        try:
+            region_info = await fetch_region_info(query)
+        except LookupError as error:
+            raise HTTPException(status_code=404, detail=str(error)) from error
+        except (httpx.HTTPError, IndexError, KeyError) as error:
+            raise HTTPException(status_code=502, detail="City information service unavailable") from error
+        return {"response": f"Informations sur la région {region_info['nom']}", "data": region_info, "context": message.context, "status": "success", "source": "local", "source_type": "region_info"}
     if is_city_info_request(message.message):
         query = re.sub(r"^(?:infos?|informations?)(?:\s+sur)?\s+", "", message.message.strip(), flags=re.IGNORECASE)
         try:
             city_info = await get_city_info(query)
+        except LookupError as error:
+            raise HTTPException(status_code=404, detail=str(error)) from error
         except (httpx.HTTPError, IndexError, KeyError) as error:
             raise HTTPException(status_code=502, detail="City information service unavailable") from error
         return {"response": f"Informations sur {city_info['city']}", "data": city_info, "context": message.context, "status": "success", "source": "local", "source_type": "city_info"}

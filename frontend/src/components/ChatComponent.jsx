@@ -242,7 +242,7 @@ export default function ChatComponent() {
                 <div className="mb-1 text-[10px] font-semibold uppercase tracking-wider text-gray-400">
                   <span className={`inline-flex items-center gap-1.5 rounded-full border px-2 py-1 ${msg.source === 'local' ? (msg.sourceType === 'weather' ? 'border-sky-700/60 bg-sky-950/40 text-sky-300' : 'border-emerald-700/60 bg-emerald-950/40 text-emerald-300') : 'border-violet-700/60 bg-violet-950/40 text-violet-300'}`}>
                     {msg.loading ? <LoadingIcon /> : <SourceIcon type={msg.source === 'local' ? (msg.sourceType === 'weather' ? msg.weatherType : msg.sourceType) : 'ai'} />}
-                    {msg.source === 'local' ? (msg.sourceType === 'weather' ? 'Météo locale' : msg.sourceType === 'time' ? (msg.timeLabel || 'Heure France') : msg.sourceType === 'city_info' ? 'Infos ville' : 'API système') : 'IA'}
+                    {msg.source === 'local' ? (msg.sourceType === 'weather' ? 'Météo locale' : msg.sourceType === 'time' ? (msg.timeLabel || 'Heure France') : msg.sourceType === 'city_info' ? 'Infos ville' : msg.sourceType === 'departement_info' ? 'Infos département' : msg.sourceType === 'region_info' ? 'Infos région' : 'API système') : 'IA'}
                   </span>
                 </div>
               )}
@@ -250,6 +250,8 @@ export default function ChatComponent() {
                 <div className="flex items-center gap-2 py-2 text-sm text-gray-300"><LoadingIcon /> Récupération des informations...</div>
               ) : msg.sourceType === 'city_info' ? (
                 <CityInfoCard data={msg.data} title={msg.text} />
+              ) : (msg.sourceType === 'departement_info' || msg.sourceType === 'region_info') ? (
+                <AreaInfoCard data={msg.data} />
               ) : msg.sourceType === 'time' && msg.timeData ? (
                 <div className="min-w-[17rem] sm:min-w-[28rem]">
                   <div className="flex flex-wrap items-end justify-between gap-4 border-b border-gray-600/60 pb-4">
@@ -330,8 +332,84 @@ export default function ChatComponent() {
   )
 }
 
+function AreaInfoCard({ data }) {
+  const kindLabel = data.kind === 'region' ? 'Région' : 'Département'
+  return (
+    <div className="w-full min-w-0 max-w-2xl">
+      <div className="flex flex-col gap-3 border-b border-gray-600/60 pb-4 sm:flex-row sm:items-start">
+        <span className="w-fit rounded-lg bg-cyan-500/15 p-3 text-cyan-300"><CityInfoIcon /></span>
+        <div className="min-w-0">
+          <p className="text-xs font-semibold uppercase tracking-wider text-cyan-300">{kindLabel}</p>
+          <h3 className="mt-1 text-xl font-semibold text-white">{data.nom}</h3>
+          <p className="text-sm text-gray-400">{data.parent_label}</p>
+        </div>
+      </div>
+      <div className="mt-4 grid grid-cols-1 gap-3 min-[420px]:grid-cols-2 xl:grid-cols-4">
+        <InfoMetric label="Population" value={data.population} />
+        <InfoMetric label="Superficie" value={data.area} />
+        <InfoMetric label="Communes" value={data.nb_communes} />
+        <InfoMetric label="Ville principale" value={data.largest_city} />
+      </div>
+      <div className="mt-4 grid gap-3 border-t border-gray-600/60 pt-4 text-sm leading-6 text-gray-300">
+        <DetailBlock title="Niveau de vie" value={data.living_level} />
+        <DetailBlock title="Budget pour vivre correctement" value={data.comfortable_budget} />
+        <DetailBlock title="Repère historique" value={data.history} />
+      </div>
+    </div>
+  )
+}
+
 function CityInfoCard({ data, title }) {
   const [detailsOpen, setDetailsOpen] = useState(false)
+  const [detailsLoading, setDetailsLoading] = useState(false)
+  const [detailsError, setDetailsError] = useState(null)
+  const [detailsOverride, setDetailsOverride] = useState(null)
+  const [confirmRefresh, setConfirmRefresh] = useState(false)
+
+  const cityKey = (data.city || '').toLowerCase()
+  const housingPrice = detailsOverride?.housing_price ?? data.housing_price
+  const comfortableBudget = detailsOverride?.comfortable_budget ?? data.comfortable_budget
+
+  const refreshDetails = async () => {
+    setDetailsLoading(true)
+    setDetailsError(null)
+    try {
+      const res = await fetch(`/api/city-details/${encodeURIComponent(cityKey)}/refresh`, { method: 'POST' })
+      const body = await res.json()
+      if (!res.ok) throw new Error(body.detail || `Erreur (${res.status})`)
+      setDetailsOverride(body.data)
+    } catch (error) {
+      setDetailsError(error.message || 'Erreur lors de la récupération des détails')
+    } finally {
+      setDetailsLoading(false)
+    }
+  }
+
+  const handleToggleDetails = async () => {
+    if (detailsOpen) {
+      setDetailsOpen(false)
+      return
+    }
+    setDetailsOpen(true)
+    if (detailsOverride) return // déjà actualisé cette session, pas besoin de re-vérifier
+
+    setDetailsLoading(true)
+    setDetailsError(null)
+    try {
+      const res = await fetch(`/api/city-details/${encodeURIComponent(cityKey)}/status`)
+      const body = await res.json()
+      if (!res.ok) throw new Error(body.detail || `Erreur (${res.status})`)
+      setDetailsLoading(false)
+      if (body.has_cached_details) {
+        setConfirmRefresh(true) // des détails existent déjà : on demande avant de relancer les API
+      } else {
+        await refreshDetails()
+      }
+    } catch (error) {
+      setDetailsLoading(false)
+      setDetailsError(error.message || 'Erreur lors de la vérification des détails')
+    }
+  }
 
   return (
     <div className="w-full min-w-0 max-w-2xl">
@@ -347,10 +425,10 @@ function CityInfoCard({ data, title }) {
         <InfoMetric label="Population" value={data.population} />
         <InfoMetric label="Superficie" value={data.area} />
         <InfoMetric label="Division" value={data.division} />
-        <InfoMetric label="Marchés" value={data.markets} />
+        <InfoMetric label="Endroits à visiter" value={data.places_to_visit} />
       </div>
       <p className="mt-4 text-sm leading-6 text-gray-300">{data.economy}</p>
-      <button type="button" onClick={() => setDetailsOpen((open) => !open)} className="mt-4 rounded-md border border-cyan-700/60 px-3 py-2 text-sm font-medium text-cyan-300 hover:bg-cyan-950/40">
+      <button type="button" onClick={handleToggleDetails} className="mt-4 rounded-md border border-cyan-700/60 px-3 py-2 text-sm font-medium text-cyan-300 hover:bg-cyan-950/40">
         {detailsOpen ? 'Réduire les détails' : 'Voir les détails'}
       </button>
       {detailsOpen && (
@@ -361,11 +439,39 @@ function CityInfoCard({ data, title }) {
           <DetailBlock title="Points de vigilance" value={data.weaknesses.join(' • ')} />
           <DetailBlock title="Position" value={data.position} />
           <DetailBlock title="Niveau de vie" value={data.living_level} />
-          <DetailBlock title="Prix indicatif au m²" value={data.housing_price} />
-          <DetailBlock title="Budget pour vivre correctement" value={data.comfortable_budget} />
+          <DetailBlock title="Prix indicatif au m²" value={detailsLoading ? 'Récupération en cours...' : housingPrice} />
+          <DetailBlock title="Budget pour vivre correctement" value={detailsLoading ? 'Récupération en cours...' : comfortableBudget} />
           <DetailBlock title="Repère historique" value={data.history} />
+          {detailsError && <p className="text-xs text-red-400">{detailsError}</p>}
         </div>
       )}
+      {confirmRefresh && (
+        <ConfirmModal
+          message={`Le prix au m² et le budget de vie de ${data.city} sont déjà enregistrés. Les actualiser avec des données fraîches ?`}
+          confirmLabel="Actualiser"
+          cancelLabel="Garder les données actuelles"
+          onConfirm={() => { setConfirmRefresh(false); refreshDetails() }}
+          onCancel={() => setConfirmRefresh(false)}
+        />
+      )}
+    </div>
+  )
+}
+
+function ConfirmModal({ message, confirmLabel, cancelLabel, onConfirm, onCancel }) {
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4" onClick={onCancel}>
+      <div className="w-full max-w-sm rounded-lg border border-gray-700 bg-gray-800 p-5 shadow-xl" onClick={(event) => event.stopPropagation()}>
+        <p className="text-sm leading-6 text-gray-200">{message}</p>
+        <div className="mt-4 flex flex-wrap justify-end gap-2">
+          <button type="button" onClick={onCancel} className="rounded-md border border-gray-600 px-3 py-2 text-sm text-gray-300 hover:bg-gray-700">
+            {cancelLabel}
+          </button>
+          <button type="button" onClick={onConfirm} className="rounded-md bg-cyan-600 px-3 py-2 text-sm font-medium text-white hover:bg-cyan-500">
+            {confirmLabel}
+          </button>
+        </div>
+      </div>
     </div>
   )
 }
