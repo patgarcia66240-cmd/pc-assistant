@@ -2,7 +2,7 @@
 from datetime import datetime
 import re
 import unicodedata
-from zoneinfo import ZoneInfo
+from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
 import httpx
 import psutil
@@ -141,7 +141,7 @@ async def get_time_answer(message: str = "", location: dict | None = None) -> st
                 )
                 geocoding.raise_for_status()
                 place = geocoding.json().get("results", [])[0]
-                timezone_name = place.get("timezone", timezone_name)
+                timezone_name = place.get("timezone") or timezone_name
                 reference = f"{place.get('name', city.title())}, {COUNTRY_NAMES.get(place.get('country_code'), place.get('country', ''))}".strip(", ")
                 latitude = place["latitude"]
                 longitude = place["longitude"]
@@ -154,12 +154,20 @@ async def get_time_answer(message: str = "", location: dict | None = None) -> st
                     params={"latitude": latitude, "longitude": longitude, "current": "temperature_2m", "timezone": "auto"},
                 )
                 timezone_response.raise_for_status()
-                timezone_name = timezone_response.json().get("timezone", timezone_name)
+                timezone_name = timezone_response.json().get("timezone") or timezone_name
                 reference = "votre position"
             except (httpx.HTTPError, KeyError, TypeError):
                 pass
 
-    now = datetime.now(ZoneInfo(timezone_name))
+    # timezone_name peut venir d'une réponse API externe (open-meteo) : si jamais elle renvoie
+    # une valeur vide/invalide, ZoneInfo() plante sans que ce soit une erreur réseau — on protège
+    # ce point précis (c'était la cause d'un vrai crash 500 sur /api/chat/ pour les requêtes
+    # d'heure avec une position/ville dont le fuseau horaire était mal renseigné).
+    try:
+        now = datetime.now(ZoneInfo(timezone_name))
+    except (ZoneInfoNotFoundError, ValueError, TypeError):
+        timezone_name = "Europe/Paris"
+        now = datetime.now(ZoneInfo(timezone_name))
     offset_hours = int(now.utcoffset().total_seconds() / 3600)
     offset = f"UTC{offset_hours:+d}"
     season = "heure d'été" if now.dst() else "heure d'hiver"
@@ -258,15 +266,46 @@ def weather_icon_type(code: int) -> str:
     return "rain"
 
 
+# Formules de politesse qu'on ne veut pas envoyer au géocodeur comme si c'était un nom de
+# ville (ex. "météo s'il te plaît" -> extract_city renvoyait "s il te plait" sans ce filtre).
+FILLER_SUFFIXES = (
+    "s il te plait",
+    "s il vous plait",
+    "stp",
+    "svp",
+    "merci",
+    "please",
+)
+
+
+def _strip_filler_suffix(city: str) -> str:
+    # Plusieurs passes : "s'il te plaît stp" doit perdre les deux, pas juste la dernière trouvée.
+    cleaned = city
+    changed = True
+    while changed:
+        changed = False
+        for filler in FILLER_SUFFIXES:
+            new_cleaned = re.sub(rf"\s*,?\s*{re.escape(filler)}\s*$", "", cleaned).strip()
+            if new_cleaned != cleaned:
+                cleaned = new_cleaned
+                changed = True
+    return cleaned
+
+
 def extract_city(message: str) -> str | None:
     normalized = normalize_text(message)
     match = re.search(r"\bmeteo\s+(.+)$", normalized)
     if match:
         city = match.group(1).strip(" ?.!	")
-        return re.sub(r"^(?:de|a|pour)\s+", "", city).strip()
+        city = re.sub(r"^(?:de|a|pour)\s+", "", city).strip()
+    else:
+        match = re.search(r"\b(?:de|a|pour)\s+(.+)$", normalized)
+        city = match.group(1).strip(" ?.!	") if match else None
 
-    match = re.search(r"\b(?:de|a|pour)\s+(.+)$", normalized)
-    return match.group(1).strip(" ?.!	") if match else None
+    if not city:
+        return None
+    city = _strip_filler_suffix(city)
+    return city or None
 
 
 def geocoding_city_name(city: str) -> str:
@@ -274,13 +313,16 @@ def geocoding_city_name(city: str) -> str:
     return "-".join(city.split())
 
 
-async def get_weather_answer(message: str, location: dict | None = None) -> str:
+async def get_weather_answer(message: str, location: dict | None = None) -> dict:
+    # Toujours renvoyer {"text": ..., "weather_type": ...} : chat.py fait response["text"] et
+    # response["weather_type"] sans distinction de cas, donc une simple chaîne ici plantait en
+    # TypeError ("string indices must be integers") dès qu'aucune ville n'était trouvée.
     city = extract_city(message)
     coordinates = None
     if not city and location and "latitude" in location and "longitude" in location:
         coordinates = (location["latitude"], location["longitude"])
     if not city and coordinates is None:
-        return "Précisez une ville, par exemple : météo de Paris."
+        return {"text": "Précisez une ville, par exemple : météo de Paris.", "weather_type": None}
 
     async with httpx.AsyncClient(timeout=8) as client:
         place = {"name": "votre position"}
@@ -292,7 +334,7 @@ async def get_weather_answer(message: str, location: dict | None = None) -> str:
             geocoding.raise_for_status()
             places = geocoding.json().get("results", [])
             if not places:
-                return f"Je ne trouve pas la ville {city}."
+                return {"text": f"Je ne trouve pas la ville {city}.", "weather_type": None}
             place = places[0]
             coordinates = (place["latitude"], place["longitude"])
         else:

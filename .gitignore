@@ -46,6 +46,9 @@ Cargo.lock
 .env
 .env.local
 
+# Tokens OAuth Google Agenda (mêmes secrets qu'un .env, ne doivent jamais être commit)
+backend/google_calendar_token.json
+
 # Database
 *.db
 *.sqlite

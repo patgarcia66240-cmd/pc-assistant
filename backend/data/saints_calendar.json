@@ -1,0 +1,1450 @@
+{
+  "01-01": {
+    "name": "Sainte Marie, Mère de Dieu",
+    "story": "Cette fête ouvre l'année chrétienne en honorant Marie comme mère de Jésus et figure de paix."
+  },
+  "01-02": {
+    "name": "Saint Basile",
+    "story": "Saint Basile est fêté(e) aujourd'hui selon le calendrier traditionnel des saints."
+  },
+  "01-03": {
+    "name": "Sainte Geneviève",
+    "story": "Sainte Geneviève est fêté(e) aujourd'hui selon le calendrier traditionnel des saints."
+  },
+  "01-04": {
+    "name": "Saint Odilon",
+    "story": "Saint Odilon est fêté(e) aujourd'hui selon le calendrier traditionnel des saints."
+  },
+  "01-05": {
+    "name": "Saint Edouard",
+    "story": "Saint Edouard est fêté(e) aujourd'hui selon le calendrier traditionnel des saints."
+  },
+  "01-06": {
+    "name": "Saint Mélaine",
+    "story": "Saint Mélaine est fêté(e) aujourd'hui selon le calendrier traditionnel des saints."
+  },
+  "01-07": {
+    "name": "Saint Raymond",
+    "story": "Saint Raymond est fêté(e) aujourd'hui selon le calendrier traditionnel des saints."
+  },
+  "01-08": {
+    "name": "Saint Lucien",
+    "story": "Saint Lucien est fêté(e) aujourd'hui selon le calendrier traditionnel des saints."
+  },
+  "01-09": {
+    "name": "Sainte Alix",
+    "story": "Sainte Alix est fêté(e) aujourd'hui selon le calendrier traditionnel des saints."
+  },
+  "01-10": {
+    "name": "Saint Guillaume",
+    "story": "Saint Guillaume est fêté(e) aujourd'hui selon le calendrier traditionnel des saints."
+  },
+  "01-11": {
+    "name": "Saint Pauline",
+    "story": "Saint Pauline est fêté(e) aujourd'hui selon le calendrier traditionnel des saints."
+  },
+  "01-12": {
+    "name": "Sainte Tatiana",
+    "story": "Sainte Tatiana est fêté(e) aujourd'hui selon le calendrier traditionnel des saints."
+  },
+  "01-13": {
+    "name": "Sainte Yvette",
+    "story": "Sainte Yvette est fêté(e) aujourd'hui selon le calendrier traditionnel des saints."
+  },
+  "01-14": {
+    "name": "Sainte Nina",
+    "story": "Sainte Nina est fêté(e) aujourd'hui selon le calendrier traditionnel des saints."
+  },
+  "01-15": {
+    "name": "Saint Rémi",
+    "story": "Saint Rémi est fêté(e) aujourd'hui selon le calendrier traditionnel des saints."
+  },
+  "01-16": {
+    "name": "Saint Marcel",
+    "story": "Saint Marcel est fêté(e) aujourd'hui selon le calendrier traditionnel des saints."
+  },
+  "01-17": {
+    "name": "Sainte Roseline",
+    "story": "Sainte Roseline est fêté(e) aujourd'hui selon le calendrier traditionnel des saints."
+  },
+  "01-18": {
+    "name": "Sainte Prisca",
+    "story": "Sainte Prisca est fêté(e) aujourd'hui selon le calendrier traditionnel des saints."
+  },
+  "01-19": {
+    "name": "Saint Marius",
+    "story": "Saint Marius est fêté(e) aujourd'hui selon le calendrier traditionnel des saints."
+  },
+  "01-20": {
+    "name": "Saint Sébastien",
+    "story": "Saint Sébastien est fêté(e) aujourd'hui selon le calendrier traditionnel des saints."
+  },
+  "01-21": {
+    "name": "Sainte Agnès",
+    "story": "Sainte Agnès est fêté(e) aujourd'hui selon le calendrier traditionnel des saints."
+  },
+  "01-22": {
+    "name": "Saint Vincent",
+    "story": "Saint Vincent est fêté(e) aujourd'hui selon le calendrier traditionnel des saints."
+  },
+  "01-23": {
+    "name": "Saint Barnard",
+    "story": "Saint Barnard est fêté(e) aujourd'hui selon le calendrier traditionnel des saints."
+  },
+  "01-24": {
+    "name": "Saint François de Sales",
+    "story": "Saint François de Sales est fêté(e) aujourd'hui selon le calendrier traditionnel des saints."
+  },
+  "01-25": {
+    "name": "Conversion de Paul",
+    "story": "Conversion de Paul : journée commémorative inscrite au calendrier, sans saint patron attitré à cette date."
+  },
+  "01-26": {
+    "name": "Sainte Paule",
+    "story": "Sainte Paule est fêté(e) aujourd'hui selon le calendrier traditionnel des saints."
+  },
+  "01-27": {
+    "name": "Sainte Angèle",
+    "story": "Sainte Angèle est fêté(e) aujourd'hui selon le calendrier traditionnel des saints."
+  },
+  "01-28": {
+    "name": "Saint Thomas d'Aquin",
+    "story": "Saint Thomas d'Aquin est fêté(e) aujourd'hui selon le calendrier traditionnel des saints."
+  },
+  "01-29": {
+    "name": "Saint Gildas",
+    "story": "Saint Gildas est fêté(e) aujourd'hui selon le calendrier traditionnel des saints."
+  },
+  "01-30": {
+    "name": "Sainte Martine",
+    "story": "Sainte Martine est fêté(e) aujourd'hui selon le calendrier traditionnel des saints."
+  },
+  "01-31": {
+    "name": "Sainte Marcelle",
+    "story": "Sainte Marcelle est fêté(e) aujourd'hui selon le calendrier traditionnel des saints."
+  },
+  "02-01": {
+    "name": "Sainte Ella",
+    "story": "Sainte Ella est fêté(e) aujourd'hui selon le calendrier traditionnel des saints."
+  },
+  "02-02": {
+    "name": "Sainte Présentation du Seigneur",
+    "story": "La Présentation rappelle l'offrande de Jésus au Temple et la rencontre avec Syméon et Anne."
+  },
+  "02-03": {
+    "name": "Saint Blaise",
+    "story": "Saint Blaise est fêté(e) aujourd'hui selon le calendrier traditionnel des saints."
+  },
+  "02-04": {
+    "name": "Sainte Véronique",
+    "story": "Sainte Véronique est fêté(e) aujourd'hui selon le calendrier traditionnel des saints."
+  },
+  "02-05": {
+    "name": "Sainte Agathe",
+    "story": "Sainte Agathe est fêté(e) aujourd'hui selon le calendrier traditionnel des saints."
+  },
+  "02-06": {
+    "name": "Saint Gaston",
+    "story": "Saint Gaston est fêté(e) aujourd'hui selon le calendrier traditionnel des saints."
+  },
+  "02-07": {
+    "name": "Sainte Eugènie",
+    "story": "Sainte Eugènie est fêté(e) aujourd'hui selon le calendrier traditionnel des saints."
+  },
+  "02-08": {
+    "name": "Sainte Jacqueline",
+    "story": "Sainte Jacqueline est fêté(e) aujourd'hui selon le calendrier traditionnel des saints."
+  },
+  "02-09": {
+    "name": "Sainte Apolline",
+    "story": "Sainte Apolline est fêté(e) aujourd'hui selon le calendrier traditionnel des saints."
+  },
+  "02-10": {
+    "name": "Saint Arnaud",
+    "story": "Saint Arnaud est fêté(e) aujourd'hui selon le calendrier traditionnel des saints."
+  },
+  "02-11": {
+    "name": "Sainte Notre Dame de Lourdes",
+    "story": "Sainte Notre Dame de Lourdes est fêté(e) aujourd'hui selon le calendrier traditionnel des saints."
+  },
+  "02-12": {
+    "name": "Saint Félix",
+    "story": "Saint Félix est fêté(e) aujourd'hui selon le calendrier traditionnel des saints."
+  },
+  "02-13": {
+    "name": "Sainte Béatrice",
+    "story": "Sainte Béatrice est fêté(e) aujourd'hui selon le calendrier traditionnel des saints."
+  },
+  "02-14": {
+    "name": "Saint Valentin",
+    "story": "Saint Valentin est fêté(e) aujourd'hui selon le calendrier traditionnel des saints."
+  },
+  "02-15": {
+    "name": "Saint Claude",
+    "story": "Saint Claude est fêté(e) aujourd'hui selon le calendrier traditionnel des saints."
+  },
+  "02-16": {
+    "name": "Sainte Julienne",
+    "story": "Sainte Julienne est fêté(e) aujourd'hui selon le calendrier traditionnel des saints."
+  },
+  "02-17": {
+    "name": "Saint Alexis",
+    "story": "Saint Alexis est fêté(e) aujourd'hui selon le calendrier traditionnel des saints."
+  },
+  "02-18": {
+    "name": "Sainte Bernadette",
+    "story": "Sainte Bernadette est fêté(e) aujourd'hui selon le calendrier traditionnel des saints."
+  },
+  "02-19": {
+    "name": "Saint Gabin",
+    "story": "Saint Gabin est fêté(e) aujourd'hui selon le calendrier traditionnel des saints."
+  },
+  "02-20": {
+    "name": "Sainte Aimée",
+    "story": "Sainte Aimée est fêté(e) aujourd'hui selon le calendrier traditionnel des saints."
+  },
+  "02-22": {
+    "name": "Sainte Isabelle",
+    "story": "Sainte Isabelle est fêté(e) aujourd'hui selon le calendrier traditionnel des saints."
+  },
+  "02-23": {
+    "name": "Saint Lazare",
+    "story": "Saint Lazare est fêté(e) aujourd'hui selon le calendrier traditionnel des saints."
+  },
+  "02-24": {
+    "name": "Sainte Modeste",
+    "story": "Sainte Modeste est fêté(e) aujourd'hui selon le calendrier traditionnel des saints."
+  },
+  "02-25": {
+    "name": "Saint Roméo",
+    "story": "Saint Roméo est fêté(e) aujourd'hui selon le calendrier traditionnel des saints."
+  },
+  "02-26": {
+    "name": "Saint Nestor",
+    "story": "Saint Nestor est fêté(e) aujourd'hui selon le calendrier traditionnel des saints."
+  },
+  "02-27": {
+    "name": "Sainte Honorine",
+    "story": "Sainte Honorine est fêté(e) aujourd'hui selon le calendrier traditionnel des saints."
+  },
+  "02-28": {
+    "name": "Saint Romain",
+    "story": "Saint Romain est fêté(e) aujourd'hui selon le calendrier traditionnel des saints."
+  },
+  "02-29": {
+    "name": "Saint Auguste",
+    "story": "Saint Auguste est fêté(e) aujourd'hui selon le calendrier traditionnel des saints."
+  },
+  "03-01": {
+    "name": "Saint Aubin",
+    "story": "Saint Aubin est fêté(e) aujourd'hui selon le calendrier traditionnel des saints."
+  },
+  "03-02": {
+    "name": "Saint Charles le Bon",
+    "story": "Saint Charles le Bon est fêté(e) aujourd'hui selon le calendrier traditionnel des saints."
+  },
+  "03-03": {
+    "name": "Saint Guénolé",
+    "story": "Saint Guénolé est fêté(e) aujourd'hui selon le calendrier traditionnel des saints."
+  },
+  "03-04": {
+    "name": "Saint Casimir",
+    "story": "Saint Casimir est fêté(e) aujourd'hui selon le calendrier traditionnel des saints."
+  },
+  "03-05": {
+    "name": "Saint Olive",
+    "story": "Saint Olive est fêté(e) aujourd'hui selon le calendrier traditionnel des saints."
+  },
+  "03-06": {
+    "name": "Sainte Colette",
+    "story": "Sainte Colette est fêté(e) aujourd'hui selon le calendrier traditionnel des saints."
+  },
+  "03-07": {
+    "name": "Sainte Félicité",
+    "story": "Sainte Félicité est fêté(e) aujourd'hui selon le calendrier traditionnel des saints."
+  },
+  "03-08": {
+    "name": "Saint Jean de Dieu",
+    "story": "Saint Jean de Dieu est fêté(e) aujourd'hui selon le calendrier traditionnel des saints."
+  },
+  "03-09": {
+    "name": "Sainte Françoise",
+    "story": "Sainte Françoise est fêté(e) aujourd'hui selon le calendrier traditionnel des saints."
+  },
+  "03-10": {
+    "name": "Saint Vivien",
+    "story": "Saint Vivien est fêté(e) aujourd'hui selon le calendrier traditionnel des saints."
+  },
+  "03-11": {
+    "name": "Sainte Rosine",
+    "story": "Sainte Rosine est fêté(e) aujourd'hui selon le calendrier traditionnel des saints."
+  },
+  "03-12": {
+    "name": "Sainte Justine",
+    "story": "Sainte Justine est fêté(e) aujourd'hui selon le calendrier traditionnel des saints."
+  },
+  "03-13": {
+    "name": "Saint Rodrigue",
+    "story": "Saint Rodrigue est fêté(e) aujourd'hui selon le calendrier traditionnel des saints."
+  },
+  "03-14": {
+    "name": "Sainte Mathilde",
+    "story": "Sainte Mathilde est fêté(e) aujourd'hui selon le calendrier traditionnel des saints."
+  },
+  "03-15": {
+    "name": "Sainte Louise",
+    "story": "Sainte Louise est fêté(e) aujourd'hui selon le calendrier traditionnel des saints."
+  },
+  "03-16": {
+    "name": "Sainte Bénédicte",
+    "story": "Sainte Bénédicte est fêté(e) aujourd'hui selon le calendrier traditionnel des saints."
+  },
+  "03-17": {
+    "name": "Saint Patrice",
+    "story": "Saint Patrice est fêté(e) aujourd'hui selon le calendrier traditionnel des saints."
+  },
+  "03-18": {
+    "name": "Saint Cyrille",
+    "story": "Saint Cyrille est fêté(e) aujourd'hui selon le calendrier traditionnel des saints."
+  },
+  "03-19": {
+    "name": "Saint Joseph",
+    "story": "Saint Joseph est présenté comme l'artisan de Nazareth et le protecteur attentif de la famille de Jésus."
+  },
+  "03-20": {
+    "name": "Saint Herbert",
+    "story": "Saint Herbert est fêté(e) aujourd'hui selon le calendrier traditionnel des saints."
+  },
+  "03-21": {
+    "name": "Sainte Clémence",
+    "story": "Sainte Clémence est fêté(e) aujourd'hui selon le calendrier traditionnel des saints."
+  },
+  "03-22": {
+    "name": "Sainte Léa",
+    "story": "Sainte Léa est fêté(e) aujourd'hui selon le calendrier traditionnel des saints."
+  },
+  "03-23": {
+    "name": "Saint Victorien",
+    "story": "Saint Victorien est fêté(e) aujourd'hui selon le calendrier traditionnel des saints."
+  },
+  "03-24": {
+    "name": "Sainte Karine",
+    "story": "Sainte Karine est fêté(e) aujourd'hui selon le calendrier traditionnel des saints."
+  },
+  "03-25": {
+    "name": "Sainte Anne",
+    "story": "Sainte Anne est fêté(e) aujourd'hui selon le calendrier traditionnel des saints."
+  },
+  "03-26": {
+    "name": "Sainte Larissa",
+    "story": "Sainte Larissa est fêté(e) aujourd'hui selon le calendrier traditionnel des saints."
+  },
+  "03-27": {
+    "name": "Saint Habib",
+    "story": "Saint Habib est fêté(e) aujourd'hui selon le calendrier traditionnel des saints."
+  },
+  "03-28": {
+    "name": "Saint Gontran",
+    "story": "Saint Gontran est fêté(e) aujourd'hui selon le calendrier traditionnel des saints."
+  },
+  "03-29": {
+    "name": "Sainte Gwladys",
+    "story": "Sainte Gwladys est fêté(e) aujourd'hui selon le calendrier traditionnel des saints."
+  },
+  "03-30": {
+    "name": "Saint Amédée",
+    "story": "Saint Amédée est fêté(e) aujourd'hui selon le calendrier traditionnel des saints."
+  },
+  "03-31": {
+    "name": "Saint Benjamin",
+    "story": "Saint Benjamin est fêté(e) aujourd'hui selon le calendrier traditionnel des saints."
+  },
+  "04-01": {
+    "name": "Saint Hugues",
+    "story": "Saint Hugues est fêté(e) aujourd'hui selon le calendrier traditionnel des saints."
+  },
+  "04-02": {
+    "name": "Sainte Sandrine",
+    "story": "Sainte Sandrine est fêté(e) aujourd'hui selon le calendrier traditionnel des saints."
+  },
+  "04-03": {
+    "name": "Saint Richard",
+    "story": "Saint Richard est fêté(e) aujourd'hui selon le calendrier traditionnel des saints."
+  },
+  "04-04": {
+    "name": "Saint Isidore",
+    "story": "Saint Isidore est fêté(e) aujourd'hui selon le calendrier traditionnel des saints."
+  },
+  "04-05": {
+    "name": "Sainte Irène",
+    "story": "Sainte Irène est fêté(e) aujourd'hui selon le calendrier traditionnel des saints."
+  },
+  "04-06": {
+    "name": "Saint Marcellin",
+    "story": "Saint Marcellin est fêté(e) aujourd'hui selon le calendrier traditionnel des saints."
+  },
+  "04-07": {
+    "name": "Saint Jean-Baptiste de la Salle",
+    "story": "Saint Jean-Baptiste de la Salle est fêté(e) aujourd'hui selon le calendrier traditionnel des saints."
+  },
+  "04-08": {
+    "name": "Sainte Julie",
+    "story": "Sainte Julie est fêté(e) aujourd'hui selon le calendrier traditionnel des saints."
+  },
+  "04-09": {
+    "name": "Saint Gautier",
+    "story": "Saint Gautier est fêté(e) aujourd'hui selon le calendrier traditionnel des saints."
+  },
+  "04-10": {
+    "name": "Saint Fulbert",
+    "story": "Saint Fulbert est fêté(e) aujourd'hui selon le calendrier traditionnel des saints."
+  },
+  "04-11": {
+    "name": "Saint Stanislas",
+    "story": "Saint Stanislas est fêté(e) aujourd'hui selon le calendrier traditionnel des saints."
+  },
+  "04-12": {
+    "name": "Saint Jules",
+    "story": "Saint Jules est fêté(e) aujourd'hui selon le calendrier traditionnel des saints."
+  },
+  "04-13": {
+    "name": "Sainte Ida",
+    "story": "Sainte Ida est fêté(e) aujourd'hui selon le calendrier traditionnel des saints."
+  },
+  "04-14": {
+    "name": "Saint Maxime",
+    "story": "Saint Maxime est fêté(e) aujourd'hui selon le calendrier traditionnel des saints."
+  },
+  "04-15": {
+    "name": "Saint Paterne",
+    "story": "Saint Paterne est fêté(e) aujourd'hui selon le calendrier traditionnel des saints."
+  },
+  "04-16": {
+    "name": "Saint Benoît-Joseph",
+    "story": "Saint Benoît-Joseph est fêté(e) aujourd'hui selon le calendrier traditionnel des saints."
+  },
+  "04-17": {
+    "name": "Saint Anicet",
+    "story": "Saint Anicet est fêté(e) aujourd'hui selon le calendrier traditionnel des saints."
+  },
+  "04-18": {
+    "name": "Saint Parfait",
+    "story": "Saint Parfait est fêté(e) aujourd'hui selon le calendrier traditionnel des saints."
+  },
+  "04-19": {
+    "name": "Sainte Emma",
+    "story": "Sainte Emma est fêté(e) aujourd'hui selon le calendrier traditionnel des saints."
+  },
+  "04-20": {
+    "name": "Sainte Odette",
+    "story": "Sainte Odette est fêté(e) aujourd'hui selon le calendrier traditionnel des saints."
+  },
+  "04-21": {
+    "name": "Saint Anselme",
+    "story": "Saint Anselme est fêté(e) aujourd'hui selon le calendrier traditionnel des saints."
+  },
+  "04-22": {
+    "name": "Saint Alexandre",
+    "story": "Saint Alexandre est fêté(e) aujourd'hui selon le calendrier traditionnel des saints."
+  },
+  "04-23": {
+    "name": "Saint Georges",
+    "story": "Saint Georges est une figure de courage, traditionnellement associé à la victoire du bien sur le mal."
+  },
+  "04-24": {
+    "name": "Saint Fidèle",
+    "story": "Saint Fidèle est fêté(e) aujourd'hui selon le calendrier traditionnel des saints."
+  },
+  "04-25": {
+    "name": "Saint Marc",
+    "story": "Saint Marc est fêté(e) aujourd'hui selon le calendrier traditionnel des saints."
+  },
+  "04-26": {
+    "name": "Sainte Alida",
+    "story": "Sainte Alida est fêté(e) aujourd'hui selon le calendrier traditionnel des saints."
+  },
+  "04-27": {
+    "name": "Sainte Zita",
+    "story": "Sainte Zita est fêté(e) aujourd'hui selon le calendrier traditionnel des saints."
+  },
+  "04-28": {
+    "name": "Sainte Valérie",
+    "story": "Sainte Valérie est fêté(e) aujourd'hui selon le calendrier traditionnel des saints."
+  },
+  "04-29": {
+    "name": "Sainte Catherine de Sienne",
+    "story": "Sainte Catherine de Sienne est fêté(e) aujourd'hui selon le calendrier traditionnel des saints."
+  },
+  "04-30": {
+    "name": "Saint Robert",
+    "story": "Saint Robert est fêté(e) aujourd'hui selon le calendrier traditionnel des saints."
+  },
+  "05-01": {
+    "name": "Saint Joseph travailleur",
+    "story": "Cette journée met à l'honneur le travail humble et la dignité de chaque métier, à l'image de Joseph."
+  },
+  "05-02": {
+    "name": "Saint Boris",
+    "story": "Saint Boris est fêté(e) aujourd'hui selon le calendrier traditionnel des saints."
+  },
+  "05-03": {
+    "name": "Saint Philippe",
+    "story": "Saint Philippe est fêté(e) aujourd'hui selon le calendrier traditionnel des saints."
+  },
+  "05-04": {
+    "name": "Saint Sylvain",
+    "story": "Saint Sylvain est fêté(e) aujourd'hui selon le calendrier traditionnel des saints."
+  },
+  "05-05": {
+    "name": "Saint Judith",
+    "story": "Saint Judith est fêté(e) aujourd'hui selon le calendrier traditionnel des saints."
+  },
+  "05-06": {
+    "name": "Saint Prudence",
+    "story": "Saint Prudence est fêté(e) aujourd'hui selon le calendrier traditionnel des saints."
+  },
+  "05-07": {
+    "name": "Sainte Gisèle",
+    "story": "Sainte Gisèle est fêté(e) aujourd'hui selon le calendrier traditionnel des saints."
+  },
+  "05-08": {
+    "name": "Armistice de 1945",
+    "story": "Armistice de 1945 : journée commémorative inscrite au calendrier, sans saint patron attitré à cette date."
+  },
+  "05-09": {
+    "name": "Saint Pacôme",
+    "story": "Saint Pacôme est fêté(e) aujourd'hui selon le calendrier traditionnel des saints."
+  },
+  "05-10": {
+    "name": "Sainte Solange",
+    "story": "Sainte Solange est fêté(e) aujourd'hui selon le calendrier traditionnel des saints."
+  },
+  "05-11": {
+    "name": "Sainte Estelle",
+    "story": "Sainte Estelle est fêté(e) aujourd'hui selon le calendrier traditionnel des saints."
+  },
+  "05-12": {
+    "name": "Saint Achille",
+    "story": "Saint Achille est fêté(e) aujourd'hui selon le calendrier traditionnel des saints."
+  },
+  "05-13": {
+    "name": "Sainte Rolande",
+    "story": "Sainte Rolande est fêté(e) aujourd'hui selon le calendrier traditionnel des saints."
+  },
+  "05-14": {
+    "name": "Saint Matthias",
+    "story": "Saint Matthias est fêté(e) aujourd'hui selon le calendrier traditionnel des saints."
+  },
+  "05-15": {
+    "name": "Sainte Denise",
+    "story": "Sainte Denise est fêté(e) aujourd'hui selon le calendrier traditionnel des saints."
+  },
+  "05-16": {
+    "name": "Saint Honoré",
+    "story": "Saint Honoré est fêté(e) aujourd'hui selon le calendrier traditionnel des saints."
+  },
+  "05-17": {
+    "name": "Saint Pascal",
+    "story": "Saint Pascal est fêté(e) aujourd'hui selon le calendrier traditionnel des saints."
+  },
+  "05-18": {
+    "name": "Saint Eric",
+    "story": "Saint Eric est fêté(e) aujourd'hui selon le calendrier traditionnel des saints."
+  },
+  "05-19": {
+    "name": "Saint Yves",
+    "story": "Saint Yves est fêté(e) aujourd'hui selon le calendrier traditionnel des saints."
+  },
+  "05-20": {
+    "name": "Saint Bernardin",
+    "story": "Saint Bernardin est fêté(e) aujourd'hui selon le calendrier traditionnel des saints."
+  },
+  "05-21": {
+    "name": "Saint Constantin",
+    "story": "Saint Constantin est fêté(e) aujourd'hui selon le calendrier traditionnel des saints."
+  },
+  "05-22": {
+    "name": "Saint Emile",
+    "story": "Saint Emile est fêté(e) aujourd'hui selon le calendrier traditionnel des saints."
+  },
+  "05-23": {
+    "name": "Saint Didier",
+    "story": "Saint Didier est fêté(e) aujourd'hui selon le calendrier traditionnel des saints."
+  },
+  "05-24": {
+    "name": "Saint Donatien",
+    "story": "Saint Donatien est fêté(e) aujourd'hui selon le calendrier traditionnel des saints."
+  },
+  "05-25": {
+    "name": "Sainte Sophie",
+    "story": "Sainte Sophie est fêté(e) aujourd'hui selon le calendrier traditionnel des saints."
+  },
+  "05-26": {
+    "name": "Saint Bérenger",
+    "story": "Saint Bérenger est fêté(e) aujourd'hui selon le calendrier traditionnel des saints."
+  },
+  "05-27": {
+    "name": "Saint Augustin",
+    "story": "Saint Augustin est fêté(e) aujourd'hui selon le calendrier traditionnel des saints."
+  },
+  "05-28": {
+    "name": "Saint Germain",
+    "story": "Saint Germain est fêté(e) aujourd'hui selon le calendrier traditionnel des saints."
+  },
+  "05-29": {
+    "name": "Saint Aymar",
+    "story": "Saint Aymar est fêté(e) aujourd'hui selon le calendrier traditionnel des saints."
+  },
+  "05-30": {
+    "name": "Saint Ferdinand",
+    "story": "Saint Ferdinand est fêté(e) aujourd'hui selon le calendrier traditionnel des saints."
+  },
+  "05-31": {
+    "name": "Saint Ferdinand",
+    "story": "Saint Ferdinand est fêté(e) aujourd'hui selon le calendrier traditionnel des saints."
+  },
+  "06-01": {
+    "name": "Saint Justin",
+    "story": "Saint Justin est fêté(e) aujourd'hui selon le calendrier traditionnel des saints."
+  },
+  "06-02": {
+    "name": "Sainte Blandine",
+    "story": "Sainte Blandine est fêté(e) aujourd'hui selon le calendrier traditionnel des saints."
+  },
+  "06-03": {
+    "name": "Saint Kévin",
+    "story": "Saint Kévin est fêté(e) aujourd'hui selon le calendrier traditionnel des saints."
+  },
+  "06-04": {
+    "name": "Sainte Clotilde",
+    "story": "Sainte Clotilde est fêté(e) aujourd'hui selon le calendrier traditionnel des saints."
+  },
+  "06-05": {
+    "name": "Saint Igor",
+    "story": "Saint Igor est fêté(e) aujourd'hui selon le calendrier traditionnel des saints."
+  },
+  "06-06": {
+    "name": "Saint Norbert",
+    "story": "Saint Norbert est fêté(e) aujourd'hui selon le calendrier traditionnel des saints."
+  },
+  "06-07": {
+    "name": "Saint Gilbert",
+    "story": "Saint Gilbert est fêté(e) aujourd'hui selon le calendrier traditionnel des saints."
+  },
+  "06-08": {
+    "name": "Saint Médard",
+    "story": "Saint Médard est fêté(e) aujourd'hui selon le calendrier traditionnel des saints."
+  },
+  "06-09": {
+    "name": "Sainte Diane",
+    "story": "Sainte Diane est fêté(e) aujourd'hui selon le calendrier traditionnel des saints."
+  },
+  "06-10": {
+    "name": "Saint Landry",
+    "story": "Saint Landry est fêté(e) aujourd'hui selon le calendrier traditionnel des saints."
+  },
+  "06-11": {
+    "name": "Saint Barnabé",
+    "story": "Saint Barnabé est fêté(e) aujourd'hui selon le calendrier traditionnel des saints."
+  },
+  "06-12": {
+    "name": "Saint Guy",
+    "story": "Saint Guy est fêté(e) aujourd'hui selon le calendrier traditionnel des saints."
+  },
+  "06-13": {
+    "name": "Saint Antoine de Padoue",
+    "story": "Saint Antoine de Padoue est fêté(e) aujourd'hui selon le calendrier traditionnel des saints."
+  },
+  "06-14": {
+    "name": "Sainte Elisée",
+    "story": "Sainte Elisée est fêté(e) aujourd'hui selon le calendrier traditionnel des saints."
+  },
+  "06-15": {
+    "name": "Sainte Germaine",
+    "story": "Sainte Germaine est fêté(e) aujourd'hui selon le calendrier traditionnel des saints."
+  },
+  "06-16": {
+    "name": "Saint Jean-François Régis",
+    "story": "Saint Jean-François Régis est fêté(e) aujourd'hui selon le calendrier traditionnel des saints."
+  },
+  "06-17": {
+    "name": "Saint Hervé",
+    "story": "Saint Hervé est fêté(e) aujourd'hui selon le calendrier traditionnel des saints."
+  },
+  "06-18": {
+    "name": "Saint Léonce",
+    "story": "Saint Léonce est fêté(e) aujourd'hui selon le calendrier traditionnel des saints."
+  },
+  "06-19": {
+    "name": "Saint Romuald",
+    "story": "Saint Romuald est fêté(e) aujourd'hui selon le calendrier traditionnel des saints."
+  },
+  "06-20": {
+    "name": "Saint Silvère",
+    "story": "Saint Silvère est fêté(e) aujourd'hui selon le calendrier traditionnel des saints."
+  },
+  "06-22": {
+    "name": "Saint Alban",
+    "story": "Saint Alban est fêté(e) aujourd'hui selon le calendrier traditionnel des saints."
+  },
+  "06-23": {
+    "name": "Sainte Audrey",
+    "story": "Sainte Audrey est fêté(e) aujourd'hui selon le calendrier traditionnel des saints."
+  },
+  "06-24": {
+    "name": "Saint Jean-Baptiste",
+    "story": "Jean-Baptiste est le prophète qui annonce la venue du Christ et invite à préparer les chemins."
+  },
+  "06-25": {
+    "name": "Saint Prosper",
+    "story": "Saint Prosper est fêté(e) aujourd'hui selon le calendrier traditionnel des saints."
+  },
+  "06-26": {
+    "name": "Saint Anthelme",
+    "story": "Saint Anthelme est fêté(e) aujourd'hui selon le calendrier traditionnel des saints."
+  },
+  "06-27": {
+    "name": "Saint Fernand",
+    "story": "Saint Fernand est fêté(e) aujourd'hui selon le calendrier traditionnel des saints."
+  },
+  "06-28": {
+    "name": "Saint Irénée",
+    "story": "Saint Irénée est fêté(e) aujourd'hui selon le calendrier traditionnel des saints."
+  },
+  "06-29": {
+    "name": "Saint Pierre",
+    "story": "Saint Pierre est fêté(e) aujourd'hui selon le calendrier traditionnel des saints."
+  },
+  "06-30": {
+    "name": "Saint Martial",
+    "story": "Saint Martial est fêté(e) aujourd'hui selon le calendrier traditionnel des saints."
+  },
+  "07-01": {
+    "name": "Saint Thierry",
+    "story": "Saint Thierry est fêté(e) aujourd'hui selon le calendrier traditionnel des saints."
+  },
+  "07-02": {
+    "name": "Saint Martinien",
+    "story": "Saint Martinien est fêté(e) aujourd'hui selon le calendrier traditionnel des saints."
+  },
+  "07-03": {
+    "name": "Saint Thomas",
+    "story": "Saint Thomas est fêté(e) aujourd'hui selon le calendrier traditionnel des saints."
+  },
+  "07-04": {
+    "name": "Saint Florent",
+    "story": "Saint Florent est fêté(e) aujourd'hui selon le calendrier traditionnel des saints."
+  },
+  "07-05": {
+    "name": "Saint Antoine",
+    "story": "Saint Antoine est fêté(e) aujourd'hui selon le calendrier traditionnel des saints."
+  },
+  "07-06": {
+    "name": "Sainte Mariette",
+    "story": "Sainte Mariette est fêté(e) aujourd'hui selon le calendrier traditionnel des saints."
+  },
+  "07-07": {
+    "name": "Saint Raoul",
+    "story": "Saint Raoul est fêté(e) aujourd'hui selon le calendrier traditionnel des saints."
+  },
+  "07-08": {
+    "name": "Saint Thibault",
+    "story": "Saint Thibault est fêté(e) aujourd'hui selon le calendrier traditionnel des saints."
+  },
+  "07-09": {
+    "name": "Sainte Amandine",
+    "story": "Sainte Amandine est fêté(e) aujourd'hui selon le calendrier traditionnel des saints."
+  },
+  "07-10": {
+    "name": "Saint Ulrich",
+    "story": "Saint Ulrich est fêté(e) aujourd'hui selon le calendrier traditionnel des saints."
+  },
+  "07-11": {
+    "name": "Saint Benoît",
+    "story": "Saint Benoît est fêté(e) aujourd'hui selon le calendrier traditionnel des saints."
+  },
+  "07-12": {
+    "name": "Saint Olivier",
+    "story": "Saint Olivier est fêté(e) aujourd'hui selon le calendrier traditionnel des saints."
+  },
+  "07-13": {
+    "name": "Saint Henri",
+    "story": "Saint Henri est fêté(e) aujourd'hui selon le calendrier traditionnel des saints."
+  },
+  "07-14": {
+    "name": "Saint Camille de Lellis",
+    "story": "Camille de Lellis consacra sa vie aux malades et fonda une communauté dédiée au soin des personnes fragiles."
+  },
+  "07-15": {
+    "name": "Donald",
+    "story": "Donald : journée commémorative inscrite au calendrier, sans saint patron attitré à cette date."
+  },
+  "07-16": {
+    "name": "Fête de Notre Dame du Mont Carmel",
+    "story": "Fête de Notre Dame du Mont Carmel : journée commémorative inscrite au calendrier, sans saint patron attitré à cette date."
+  },
+  "07-17": {
+    "name": "Sainte Charlotte",
+    "story": "Sainte Charlotte est fêté(e) aujourd'hui selon le calendrier traditionnel des saints."
+  },
+  "07-18": {
+    "name": "Saint Frédéric",
+    "story": "Saint Frédéric est fêté(e) aujourd'hui selon le calendrier traditionnel des saints."
+  },
+  "07-19": {
+    "name": "Saint Arsène",
+    "story": "Saint Arsène est fêté(e) aujourd'hui selon le calendrier traditionnel des saints."
+  },
+  "07-20": {
+    "name": "Sainte Marina",
+    "story": "Sainte Marina est fêté(e) aujourd'hui selon le calendrier traditionnel des saints."
+  },
+  "07-21": {
+    "name": "Saint Victor",
+    "story": "Saint Victor est fêté(e) aujourd'hui selon le calendrier traditionnel des saints."
+  },
+  "07-22": {
+    "name": "Sainte Marie-Madeleine",
+    "story": "Sainte Marie-Madeleine est fêté(e) aujourd'hui selon le calendrier traditionnel des saints."
+  },
+  "07-23": {
+    "name": "Sainte Brigitte",
+    "story": "Sainte Brigitte est fêté(e) aujourd'hui selon le calendrier traditionnel des saints."
+  },
+  "07-24": {
+    "name": "Sainte Christine",
+    "story": "Sainte Christine est fêté(e) aujourd'hui selon le calendrier traditionnel des saints."
+  },
+  "07-25": {
+    "name": "Saint Jacques",
+    "story": "Saint Jacques est fêté(e) aujourd'hui selon le calendrier traditionnel des saints."
+  },
+  "07-26": {
+    "name": "Sainte Anne",
+    "story": "Sainte Anne est fêté(e) aujourd'hui selon le calendrier traditionnel des saints."
+  },
+  "07-27": {
+    "name": "Sainte Nathalie",
+    "story": "Sainte Nathalie est fêté(e) aujourd'hui selon le calendrier traditionnel des saints."
+  },
+  "07-28": {
+    "name": "Saint Samson",
+    "story": "Saint Samson est fêté(e) aujourd'hui selon le calendrier traditionnel des saints."
+  },
+  "07-29": {
+    "name": "Sainte Marthe",
+    "story": "Sainte Marthe est fêté(e) aujourd'hui selon le calendrier traditionnel des saints."
+  },
+  "07-30": {
+    "name": "Sainte Juliette",
+    "story": "Sainte Juliette est fêté(e) aujourd'hui selon le calendrier traditionnel des saints."
+  },
+  "07-31": {
+    "name": "Saint Ignace de Loyola",
+    "story": "Saint Ignace de Loyola est fêté(e) aujourd'hui selon le calendrier traditionnel des saints."
+  },
+  "08-01": {
+    "name": "Saint Alphonse",
+    "story": "Saint Alphonse est fêté(e) aujourd'hui selon le calendrier traditionnel des saints."
+  },
+  "08-02": {
+    "name": "Saint Julien Eymard",
+    "story": "Saint Julien Eymard est fêté(e) aujourd'hui selon le calendrier traditionnel des saints."
+  },
+  "08-03": {
+    "name": "Sainte Lydie",
+    "story": "Sainte Lydie est fêté(e) aujourd'hui selon le calendrier traditionnel des saints."
+  },
+  "08-04": {
+    "name": "Saint Jean-Marie Vianney",
+    "story": "Saint Jean-Marie Vianney est fêté(e) aujourd'hui selon le calendrier traditionnel des saints."
+  },
+  "08-05": {
+    "name": "Saint Abel",
+    "story": "Saint Abel est fêté(e) aujourd'hui selon le calendrier traditionnel des saints."
+  },
+  "08-06": {
+    "name": "Fête de la Transfiguration",
+    "story": "Fête de la Transfiguration : journée commémorative inscrite au calendrier, sans saint patron attitré à cette date."
+  },
+  "08-07": {
+    "name": "Saint Gaétan",
+    "story": "Saint Gaétan est fêté(e) aujourd'hui selon le calendrier traditionnel des saints."
+  },
+  "08-08": {
+    "name": "Saint Dominique",
+    "story": "Saint Dominique est fêté(e) aujourd'hui selon le calendrier traditionnel des saints."
+  },
+  "08-09": {
+    "name": "Saint Amour",
+    "story": "Saint Amour est fêté(e) aujourd'hui selon le calendrier traditionnel des saints."
+  },
+  "08-10": {
+    "name": "Saint Laurent",
+    "story": "Saint Laurent est fêté(e) aujourd'hui selon le calendrier traditionnel des saints."
+  },
+  "08-11": {
+    "name": "Sainte Claire",
+    "story": "Sainte Claire est fêté(e) aujourd'hui selon le calendrier traditionnel des saints."
+  },
+  "08-12": {
+    "name": "Sainte Clarisse",
+    "story": "Sainte Clarisse est fêté(e) aujourd'hui selon le calendrier traditionnel des saints."
+  },
+  "08-13": {
+    "name": "Saint Hippolyte",
+    "story": "Saint Hippolyte est fêté(e) aujourd'hui selon le calendrier traditionnel des saints."
+  },
+  "08-14": {
+    "name": "Saint Evrard",
+    "story": "Saint Evrard est fêté(e) aujourd'hui selon le calendrier traditionnel des saints."
+  },
+  "08-15": {
+    "name": "Sainte Marie",
+    "story": "La fête de l'Assomption célèbre Marie et son élévation auprès de Dieu selon la tradition chrétienne."
+  },
+  "08-16": {
+    "name": "Sainte Armel",
+    "story": "Sainte Armel est fêté(e) aujourd'hui selon le calendrier traditionnel des saints."
+  },
+  "08-17": {
+    "name": "Saint Hyacinthe",
+    "story": "Saint Hyacinthe est fêté(e) aujourd'hui selon le calendrier traditionnel des saints."
+  },
+  "08-18": {
+    "name": "Sainte Hélène",
+    "story": "Sainte Hélène est fêté(e) aujourd'hui selon le calendrier traditionnel des saints."
+  },
+  "08-19": {
+    "name": "Saint Jean-Eudes",
+    "story": "Saint Jean-Eudes est fêté(e) aujourd'hui selon le calendrier traditionnel des saints."
+  },
+  "08-20": {
+    "name": "Saint Bernard",
+    "story": "Saint Bernard est fêté(e) aujourd'hui selon le calendrier traditionnel des saints."
+  },
+  "08-21": {
+    "name": "Saint Christophe",
+    "story": "Saint Christophe est fêté(e) aujourd'hui selon le calendrier traditionnel des saints."
+  },
+  "08-22": {
+    "name": "Saint Fabrice",
+    "story": "Saint Fabrice est fêté(e) aujourd'hui selon le calendrier traditionnel des saints."
+  },
+  "08-23": {
+    "name": "Sainte Rose de Lima",
+    "story": "Sainte Rose de Lima est fêté(e) aujourd'hui selon le calendrier traditionnel des saints."
+  },
+  "08-24": {
+    "name": "Saint Barthélémy",
+    "story": "Saint Barthélémy est fêté(e) aujourd'hui selon le calendrier traditionnel des saints."
+  },
+  "08-25": {
+    "name": "Saint Louis",
+    "story": "Saint Louis est fêté(e) aujourd'hui selon le calendrier traditionnel des saints."
+  },
+  "08-26": {
+    "name": "Sainte Natacha",
+    "story": "Sainte Natacha est fêté(e) aujourd'hui selon le calendrier traditionnel des saints."
+  },
+  "08-27": {
+    "name": "Sainte Monique",
+    "story": "Sainte Monique est fêté(e) aujourd'hui selon le calendrier traditionnel des saints."
+  },
+  "08-28": {
+    "name": "Saint Augustin",
+    "story": "Saint Augustin est fêté(e) aujourd'hui selon le calendrier traditionnel des saints."
+  },
+  "08-29": {
+    "name": "Sainte Sabine",
+    "story": "Sainte Sabine est fêté(e) aujourd'hui selon le calendrier traditionnel des saints."
+  },
+  "08-30": {
+    "name": "Saint Fiacre",
+    "story": "Saint Fiacre est fêté(e) aujourd'hui selon le calendrier traditionnel des saints."
+  },
+  "08-31": {
+    "name": "Saint Aristide",
+    "story": "Saint Aristide est fêté(e) aujourd'hui selon le calendrier traditionnel des saints."
+  },
+  "09-01": {
+    "name": "Saint Gilles",
+    "story": "Saint Gilles est fêté(e) aujourd'hui selon le calendrier traditionnel des saints."
+  },
+  "09-02": {
+    "name": "Sainte Ingrid",
+    "story": "Sainte Ingrid est fêté(e) aujourd'hui selon le calendrier traditionnel des saints."
+  },
+  "09-03": {
+    "name": "Saint Grégoire",
+    "story": "Saint Grégoire est fêté(e) aujourd'hui selon le calendrier traditionnel des saints."
+  },
+  "09-04": {
+    "name": "Sainte Rosalie",
+    "story": "Sainte Rosalie est fêté(e) aujourd'hui selon le calendrier traditionnel des saints."
+  },
+  "09-05": {
+    "name": "Sainte Raïssa",
+    "story": "Sainte Raïssa est fêté(e) aujourd'hui selon le calendrier traditionnel des saints."
+  },
+  "09-06": {
+    "name": "Saint Bertrand",
+    "story": "Saint Bertrand est fêté(e) aujourd'hui selon le calendrier traditionnel des saints."
+  },
+  "09-07": {
+    "name": "Sao,te Reine",
+    "story": "Sao,te Reine est fêté(e) aujourd'hui selon le calendrier traditionnel des saints."
+  },
+  "09-08": {
+    "name": "La Nativité de la Vierge Marie",
+    "story": "Cette fête célèbre la naissance de Marie. Elle rappelle son rôle dans l'histoire chrétienne et son importance dans la tradition mariale."
+  },
+  "09-09": {
+    "name": "Saint Alain",
+    "story": "Saint Alain est fêté(e) aujourd'hui selon le calendrier traditionnel des saints."
+  },
+  "09-10": {
+    "name": "Sainte Inès",
+    "story": "Sainte Inès est fêté(e) aujourd'hui selon le calendrier traditionnel des saints."
+  },
+  "09-11": {
+    "name": "Saint Adelphe",
+    "story": "Saint Adelphe est fêté(e) aujourd'hui selon le calendrier traditionnel des saints."
+  },
+  "09-12": {
+    "name": "Saint Apollinaire",
+    "story": "Saint Apollinaire est fêté(e) aujourd'hui selon le calendrier traditionnel des saints."
+  },
+  "09-13": {
+    "name": "Saint Aimé",
+    "story": "Saint Aimé est fêté(e) aujourd'hui selon le calendrier traditionnel des saints."
+  },
+  "09-14": {
+    "name": "Fête de la Croix Glorieuse",
+    "story": "Fête de la Croix Glorieuse : journée commémorative inscrite au calendrier, sans saint patron attitré à cette date."
+  },
+  "09-15": {
+    "name": "Saint Roland",
+    "story": "Saint Roland est fêté(e) aujourd'hui selon le calendrier traditionnel des saints."
+  },
+  "09-16": {
+    "name": "Sainte Edith",
+    "story": "Sainte Edith est fêté(e) aujourd'hui selon le calendrier traditionnel des saints."
+  },
+  "09-17": {
+    "name": "Saint Renaud",
+    "story": "Saint Renaud est fêté(e) aujourd'hui selon le calendrier traditionnel des saints."
+  },
+  "09-18": {
+    "name": "Sainte Nadège",
+    "story": "Sainte Nadège est fêté(e) aujourd'hui selon le calendrier traditionnel des saints."
+  },
+  "09-19": {
+    "name": "Sainte Emilie",
+    "story": "Sainte Emilie est fêté(e) aujourd'hui selon le calendrier traditionnel des saints."
+  },
+  "09-20": {
+    "name": "Saint Davy",
+    "story": "Saint Davy est fêté(e) aujourd'hui selon le calendrier traditionnel des saints."
+  },
+  "09-21": {
+    "name": "Saint Matthieu",
+    "story": "Saint Matthieu est fêté(e) aujourd'hui selon le calendrier traditionnel des saints."
+  },
+  "09-22": {
+    "name": "Saint Maurice",
+    "story": "Saint Maurice est fêté(e) aujourd'hui selon le calendrier traditionnel des saints."
+  },
+  "09-24": {
+    "name": "Sainte Thècle",
+    "story": "Sainte Thècle est fêté(e) aujourd'hui selon le calendrier traditionnel des saints."
+  },
+  "09-25": {
+    "name": "Saint Hermann",
+    "story": "Saint Hermann est fêté(e) aujourd'hui selon le calendrier traditionnel des saints."
+  },
+  "09-26": {
+    "name": "Saint Côme",
+    "story": "Saint Côme est fêté(e) aujourd'hui selon le calendrier traditionnel des saints."
+  },
+  "09-27": {
+    "name": "Saint Vincent de Paul",
+    "story": "Saint Vincent de Paul est fêté(e) aujourd'hui selon le calendrier traditionnel des saints."
+  },
+  "09-28": {
+    "name": "Saint Venceslas",
+    "story": "Saint Venceslas est fêté(e) aujourd'hui selon le calendrier traditionnel des saints."
+  },
+  "09-29": {
+    "name": "Saint Michel",
+    "story": "Saint Michel est fêté(e) aujourd'hui selon le calendrier traditionnel des saints."
+  },
+  "09-30": {
+    "name": "Saint Jérôme",
+    "story": "Saint Jérôme est fêté(e) aujourd'hui selon le calendrier traditionnel des saints."
+  },
+  "10-01": {
+    "name": "Sainte Thérèse de Lisieux",
+    "story": "Thérèse de Lisieux est connue pour sa confiance, sa simplicité et sa spiritualité de la petite voie."
+  },
+  "10-02": {
+    "name": "Saint Léger",
+    "story": "Saint Léger est fêté(e) aujourd'hui selon le calendrier traditionnel des saints."
+  },
+  "10-03": {
+    "name": "Saint Gérard",
+    "story": "Saint Gérard est fêté(e) aujourd'hui selon le calendrier traditionnel des saints."
+  },
+  "10-04": {
+    "name": "Saint François d'Assise",
+    "story": "Saint François d'Assise est fêté(e) aujourd'hui selon le calendrier traditionnel des saints."
+  },
+  "10-05": {
+    "name": "Sainte Fleur",
+    "story": "Sainte Fleur est fêté(e) aujourd'hui selon le calendrier traditionnel des saints."
+  },
+  "10-06": {
+    "name": "Saint Bruno",
+    "story": "Saint Bruno est fêté(e) aujourd'hui selon le calendrier traditionnel des saints."
+  },
+  "10-07": {
+    "name": "Saint Serge",
+    "story": "Saint Serge est fêté(e) aujourd'hui selon le calendrier traditionnel des saints."
+  },
+  "10-08": {
+    "name": "Sainte Pélagie",
+    "story": "Sainte Pélagie est fêté(e) aujourd'hui selon le calendrier traditionnel des saints."
+  },
+  "10-09": {
+    "name": "Saint Denis",
+    "story": "Saint Denis est fêté(e) aujourd'hui selon le calendrier traditionnel des saints."
+  },
+  "10-10": {
+    "name": "Saint Ghislain",
+    "story": "Saint Ghislain est fêté(e) aujourd'hui selon le calendrier traditionnel des saints."
+  },
+  "10-11": {
+    "name": "Saint Firmin",
+    "story": "Saint Firmin est fêté(e) aujourd'hui selon le calendrier traditionnel des saints."
+  },
+  "10-12": {
+    "name": "Saint Wilfried",
+    "story": "Saint Wilfried est fêté(e) aujourd'hui selon le calendrier traditionnel des saints."
+  },
+  "10-13": {
+    "name": "Saint Géraud",
+    "story": "Saint Géraud est fêté(e) aujourd'hui selon le calendrier traditionnel des saints."
+  },
+  "10-14": {
+    "name": "Saint Juste",
+    "story": "Saint Juste est fêté(e) aujourd'hui selon le calendrier traditionnel des saints."
+  },
+  "10-15": {
+    "name": "Saint Thérèse d'Avila",
+    "story": "Saint Thérèse d'Avila est fêté(e) aujourd'hui selon le calendrier traditionnel des saints."
+  },
+  "10-16": {
+    "name": "Sainte Edwige",
+    "story": "Sainte Edwige est fêté(e) aujourd'hui selon le calendrier traditionnel des saints."
+  },
+  "10-17": {
+    "name": "Saint Baudoin",
+    "story": "Saint Baudoin est fêté(e) aujourd'hui selon le calendrier traditionnel des saints."
+  },
+  "10-18": {
+    "name": "Saint Luc",
+    "story": "Saint Luc est fêté(e) aujourd'hui selon le calendrier traditionnel des saints."
+  },
+  "10-19": {
+    "name": "Saint René",
+    "story": "Saint René est fêté(e) aujourd'hui selon le calendrier traditionnel des saints."
+  },
+  "10-20": {
+    "name": "Sainte Adeline",
+    "story": "Sainte Adeline est fêté(e) aujourd'hui selon le calendrier traditionnel des saints."
+  },
+  "10-21": {
+    "name": "Sainte Céline",
+    "story": "Sainte Céline est fêté(e) aujourd'hui selon le calendrier traditionnel des saints."
+  },
+  "10-22": {
+    "name": "Sainte Elodie",
+    "story": "Sainte Elodie est fêté(e) aujourd'hui selon le calendrier traditionnel des saints."
+  },
+  "10-23": {
+    "name": "Saint Jean de Capistran",
+    "story": "Saint Jean de Capistran est fêté(e) aujourd'hui selon le calendrier traditionnel des saints."
+  },
+  "10-24": {
+    "name": "Saint Florentin",
+    "story": "Saint Florentin est fêté(e) aujourd'hui selon le calendrier traditionnel des saints."
+  },
+  "10-25": {
+    "name": "Saint Crépin",
+    "story": "Saint Crépin est fêté(e) aujourd'hui selon le calendrier traditionnel des saints."
+  },
+  "10-26": {
+    "name": "Saint Dimitri",
+    "story": "Saint Dimitri est fêté(e) aujourd'hui selon le calendrier traditionnel des saints."
+  },
+  "10-27": {
+    "name": "Sainte Emeline",
+    "story": "Sainte Emeline est fêté(e) aujourd'hui selon le calendrier traditionnel des saints."
+  },
+  "10-28": {
+    "name": "Saint Jude",
+    "story": "Saint Jude est fêté(e) aujourd'hui selon le calendrier traditionnel des saints."
+  },
+  "10-29": {
+    "name": "Saint Narcisse",
+    "story": "Saint Narcisse est fêté(e) aujourd'hui selon le calendrier traditionnel des saints."
+  },
+  "10-30": {
+    "name": "Sainte Bienvenue",
+    "story": "Sainte Bienvenue est fêté(e) aujourd'hui selon le calendrier traditionnel des saints."
+  },
+  "10-31": {
+    "name": "Saint Quentin",
+    "story": "Saint Quentin est fêté(e) aujourd'hui selon le calendrier traditionnel des saints."
+  },
+  "11-01": {
+    "name": "Tous les Saints",
+    "story": "La Toussaint célèbre tous les saints connus et inconnus, témoins de vie et d'espérance dans la tradition chrétienne."
+  },
+  "11-02": {
+    "name": "Fête des défunts",
+    "story": "Fête des défunts : journée commémorative inscrite au calendrier, sans saint patron attitré à cette date."
+  },
+  "11-03": {
+    "name": "Saint Hubert",
+    "story": "Saint Hubert est fêté(e) aujourd'hui selon le calendrier traditionnel des saints."
+  },
+  "11-04": {
+    "name": "Saint Charles",
+    "story": "Saint Charles est fêté(e) aujourd'hui selon le calendrier traditionnel des saints."
+  },
+  "11-05": {
+    "name": "Sainte Sylvie",
+    "story": "Sainte Sylvie est fêté(e) aujourd'hui selon le calendrier traditionnel des saints."
+  },
+  "11-06": {
+    "name": "Sainte Bertille",
+    "story": "Sainte Bertille est fêté(e) aujourd'hui selon le calendrier traditionnel des saints."
+  },
+  "11-07": {
+    "name": "Sainte Carine",
+    "story": "Sainte Carine est fêté(e) aujourd'hui selon le calendrier traditionnel des saints."
+  },
+  "11-08": {
+    "name": "Saint Geoffroy",
+    "story": "Saint Geoffroy est fêté(e) aujourd'hui selon le calendrier traditionnel des saints."
+  },
+  "11-09": {
+    "name": "Saint Théodore",
+    "story": "Saint Théodore est fêté(e) aujourd'hui selon le calendrier traditionnel des saints."
+  },
+  "11-10": {
+    "name": "Saint Léon",
+    "story": "Saint Léon est fêté(e) aujourd'hui selon le calendrier traditionnel des saints."
+  },
+  "11-11": {
+    "name": "Armistice de 1918",
+    "story": "Armistice de 1918 : journée commémorative inscrite au calendrier, sans saint patron attitré à cette date."
+  },
+  "11-12": {
+    "name": "Saint Christian",
+    "story": "Saint Christian est fêté(e) aujourd'hui selon le calendrier traditionnel des saints."
+  },
+  "11-13": {
+    "name": "Saint Brice",
+    "story": "Saint Brice est fêté(e) aujourd'hui selon le calendrier traditionnel des saints."
+  },
+  "11-14": {
+    "name": "Saint Sidoine",
+    "story": "Saint Sidoine est fêté(e) aujourd'hui selon le calendrier traditionnel des saints."
+  },
+  "11-15": {
+    "name": "Saint Albert",
+    "story": "Saint Albert est fêté(e) aujourd'hui selon le calendrier traditionnel des saints."
+  },
+  "11-16": {
+    "name": "Sainte Marguerite",
+    "story": "Sainte Marguerite est fêté(e) aujourd'hui selon le calendrier traditionnel des saints."
+  },
+  "11-17": {
+    "name": "Sainte Elisabeth",
+    "story": "Sainte Elisabeth est fêté(e) aujourd'hui selon le calendrier traditionnel des saints."
+  },
+  "11-18": {
+    "name": "Sainte Aude",
+    "story": "Sainte Aude est fêté(e) aujourd'hui selon le calendrier traditionnel des saints."
+  },
+  "11-19": {
+    "name": "Saint Tanguy",
+    "story": "Saint Tanguy est fêté(e) aujourd'hui selon le calendrier traditionnel des saints."
+  },
+  "11-20": {
+    "name": "Saint Edmond",
+    "story": "Saint Edmond est fêté(e) aujourd'hui selon le calendrier traditionnel des saints."
+  },
+  "11-21": {
+    "name": "Présence de Marie",
+    "story": "Présence de Marie : journée commémorative inscrite au calendrier, sans saint patron attitré à cette date."
+  },
+  "11-22": {
+    "name": "Sainte Cécile",
+    "story": "Sainte Cécile est fêté(e) aujourd'hui selon le calendrier traditionnel des saints."
+  },
+  "11-23": {
+    "name": "Saint Clément",
+    "story": "Saint Clément est fêté(e) aujourd'hui selon le calendrier traditionnel des saints."
+  },
+  "11-24": {
+    "name": "Sainte Flora",
+    "story": "Sainte Flora est fêté(e) aujourd'hui selon le calendrier traditionnel des saints."
+  },
+  "11-25": {
+    "name": "Sainte Catherine",
+    "story": "Sainte Catherine est fêté(e) aujourd'hui selon le calendrier traditionnel des saints."
+  },
+  "11-26": {
+    "name": "Sainte Delphine",
+    "story": "Sainte Delphine est fêté(e) aujourd'hui selon le calendrier traditionnel des saints."
+  },
+  "11-27": {
+    "name": "Saint Sévrin",
+    "story": "Saint Sévrin est fêté(e) aujourd'hui selon le calendrier traditionnel des saints."
+  },
+  "11-28": {
+    "name": "Saint Jacques de la Marche",
+    "story": "Saint Jacques de la Marche est fêté(e) aujourd'hui selon le calendrier traditionnel des saints."
+  },
+  "11-29": {
+    "name": "Saint Saturnin",
+    "story": "Saint Saturnin est fêté(e) aujourd'hui selon le calendrier traditionnel des saints."
+  },
+  "11-30": {
+    "name": "Saint André",
+    "story": "Saint André est fêté(e) aujourd'hui selon le calendrier traditionnel des saints."
+  },
+  "12-01": {
+    "name": "Sainte Florence",
+    "story": "Sainte Florence est fêté(e) aujourd'hui selon le calendrier traditionnel des saints."
+  },
+  "12-02": {
+    "name": "Sainte Viviane",
+    "story": "Sainte Viviane est fêté(e) aujourd'hui selon le calendrier traditionnel des saints."
+  },
+  "12-03": {
+    "name": "Saint François-Xavier",
+    "story": "Saint François-Xavier est fêté(e) aujourd'hui selon le calendrier traditionnel des saints."
+  },
+  "12-04": {
+    "name": "Sainte Barbara",
+    "story": "Sainte Barbara est fêté(e) aujourd'hui selon le calendrier traditionnel des saints."
+  },
+  "12-05": {
+    "name": "Saint Gérald",
+    "story": "Saint Gérald est fêté(e) aujourd'hui selon le calendrier traditionnel des saints."
+  },
+  "12-06": {
+    "name": "Saint Nicolas",
+    "story": "Saint Nicolas est fêté(e) aujourd'hui selon le calendrier traditionnel des saints."
+  },
+  "12-07": {
+    "name": "Sainte Ambroise",
+    "story": "Sainte Ambroise est fêté(e) aujourd'hui selon le calendrier traditionnel des saints."
+  },
+  "12-08": {
+    "name": "Fête de l'Immaculée Conception",
+    "story": "Fête de l'Immaculée Conception : journée commémorative inscrite au calendrier, sans saint patron attitré à cette date."
+  },
+  "12-09": {
+    "name": "Saint Pierre Fourier",
+    "story": "Saint Pierre Fourier est fêté(e) aujourd'hui selon le calendrier traditionnel des saints."
+  },
+  "12-10": {
+    "name": "Saint Romaric",
+    "story": "Saint Romaric est fêté(e) aujourd'hui selon le calendrier traditionnel des saints."
+  },
+  "12-11": {
+    "name": "Saint Daniel",
+    "story": "Saint Daniel est fêté(e) aujourd'hui selon le calendrier traditionnel des saints."
+  },
+  "12-12": {
+    "name": "Sainte Jeanne-Françoise de Chantal",
+    "story": "Sainte Jeanne-Françoise de Chantal est fêté(e) aujourd'hui selon le calendrier traditionnel des saints."
+  },
+  "12-13": {
+    "name": "Sainte Lucie",
+    "story": "Sainte Lucie est fêté(e) aujourd'hui selon le calendrier traditionnel des saints."
+  },
+  "12-14": {
+    "name": "Sainte Odile",
+    "story": "Sainte Odile est fêté(e) aujourd'hui selon le calendrier traditionnel des saints."
+  },
+  "12-15": {
+    "name": "Sainte Ninon",
+    "story": "Sainte Ninon est fêté(e) aujourd'hui selon le calendrier traditionnel des saints."
+  },
+  "12-16": {
+    "name": "Sainte Alice",
+    "story": "Sainte Alice est fêté(e) aujourd'hui selon le calendrier traditionnel des saints."
+  },
+  "12-17": {
+    "name": "Saint Gaël",
+    "story": "Saint Gaël est fêté(e) aujourd'hui selon le calendrier traditionnel des saints."
+  },
+  "12-18": {
+    "name": "Saint Gatien",
+    "story": "Saint Gatien est fêté(e) aujourd'hui selon le calendrier traditionnel des saints."
+  },
+  "12-19": {
+    "name": "Saint Urbain",
+    "story": "Saint Urbain est fêté(e) aujourd'hui selon le calendrier traditionnel des saints."
+  },
+  "12-20": {
+    "name": "Saint Théophile",
+    "story": "Saint Théophile est fêté(e) aujourd'hui selon le calendrier traditionnel des saints."
+  },
+  "12-22": {
+    "name": "Sainte Françoise-Xavière",
+    "story": "Sainte Françoise-Xavière est fêté(e) aujourd'hui selon le calendrier traditionnel des saints."
+  },
+  "12-23": {
+    "name": "Saint Armand",
+    "story": "Saint Armand est fêté(e) aujourd'hui selon le calendrier traditionnel des saints."
+  },
+  "12-24": {
+    "name": "Sainte Adèle",
+    "story": "Sainte Adèle est fêté(e) aujourd'hui selon le calendrier traditionnel des saints."
+  },
+  "12-25": {
+    "name": "La Nativité du Seigneur",
+    "story": "Noël célèbre la naissance de Jésus à Bethléem et le message de paix associé à cet événement."
+  },
+  "12-26": {
+    "name": "Saint Etienne",
+    "story": "Saint Etienne est fêté(e) aujourd'hui selon le calendrier traditionnel des saints."
+  },
+  "12-27": {
+    "name": "Saint Jean",
+    "story": "Saint Jean est fêté(e) aujourd'hui selon le calendrier traditionnel des saints."
+  },
+  "12-28": {
+    "name": "Saints Innocents",
+    "story": "Saints Innocents est fêté(e) aujourd'hui selon le calendrier traditionnel des saints."
+  },
+  "12-29": {
+    "name": "Saint David",
+    "story": "Saint David est fêté(e) aujourd'hui selon le calendrier traditionnel des saints."
+  },
+  "12-30": {
+    "name": "Saint Roger",
+    "story": "Saint Roger est fêté(e) aujourd'hui selon le calendrier traditionnel des saints."
+  },
+  "12-31": {
+    "name": "Saint Sylvestre",
+    "story": "Saint Sylvestre est fêté(e) aujourd'hui selon le calendrier traditionnel des saints."
+  }
+}

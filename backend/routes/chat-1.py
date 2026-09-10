@@ -1,19 +1,9 @@
 """Chat routes with Claude API integration"""
 import re
-import logging
-from datetime import datetime, timezone
-from uuid import uuid4
 import httpx
-from anthropic import APIError
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
-from sqlalchemy import select
-from config import settings
-from db import async_session
-from models.conversation import Conversation, Message
 from services.claude_service import claude_service
-from services import calendar_assistant
-from services import google_calendar_service as gcal
 from services.local_service import (
     get_ram_answer,
     get_g7_time_answer,
@@ -56,8 +46,6 @@ from services.kings_service import (
 )
 
 router = APIRouter()
-logger = logging.getLogger(__name__)
-SERVICE_ERRORS = (httpx.HTTPError, LookupError, IndexError, KeyError, ValueError, TypeError)
 
 
 def parse_time_response(response: str) -> dict:
@@ -76,36 +64,9 @@ def parse_time_response(response: str) -> dict:
 class ChatMessage(BaseModel):
     message: str
     context: dict = {}
-    conversation_id: str | None = None
-
-
-async def _persist_exchange(conversation_id: str, user_text: str, assistant_text: str) -> None:
-    async with async_session() as session:
-        conversation = await session.get(Conversation, conversation_id)
-        if conversation is None:
-            conversation = Conversation(
-                id=conversation_id,
-                title=user_text.strip()[:80] or "Conversation",
-            )
-            session.add(conversation)
-        session.add_all([
-            Message(id=str(uuid4()), conversation_id=conversation_id, role="user", content=user_text),
-            Message(id=str(uuid4()), conversation_id=conversation_id, role="assistant", content=assistant_text),
-        ])
-        conversation.updated_at = datetime.now(timezone.utc)
-        await session.commit()
-
 
 @router.post("/")
 async def chat(message: ChatMessage):
-    conversation_id = message.conversation_id or str(uuid4())
-    result = await _chat(message)
-    if result.get("status") == "success":
-        await _persist_exchange(conversation_id, message.message, result["response"])
-    result["conversation_id"] = conversation_id
-    return result
-
-async def _chat(message: ChatMessage):
     """Send message to ARIA"""
     if not message.message.strip():
         raise HTTPException(status_code=422, detail="Message cannot be empty")
@@ -170,7 +131,7 @@ async def _chat(message: ChatMessage):
     if is_weather_request(message.message):
         try:
             response = await get_weather_answer(message.message, message.context.get("location"))
-        except SERVICE_ERRORS as error:
+        except Exception as error:
             raise HTTPException(status_code=502, detail="Weather service unavailable") from error
         return {
             "response": response["text"],
@@ -183,7 +144,7 @@ async def _chat(message: ChatMessage):
     if is_forex_request(message.message):
         try:
             response = await get_forex_answer()
-        except SERVICE_ERRORS as error:
+        except Exception as error:
             raise HTTPException(status_code=502, detail="Forex service unavailable") from error
         return {
             "response": response["text"],
@@ -196,7 +157,7 @@ async def _chat(message: ChatMessage):
     if is_cac40_request(message.message):
         try:
             response = await get_cac40_answer()
-        except SERVICE_ERRORS as error:
+        except Exception as error:
             raise HTTPException(status_code=502, detail="CAC40 service unavailable") from error
         return {
             "response": response["text"],
@@ -209,7 +170,7 @@ async def _chat(message: ChatMessage):
     if is_etf_request(message.message):
         try:
             response = await get_market_quote_answer(extract_etf_query(message.message), kind="etf")
-        except SERVICE_ERRORS as error:
+        except Exception as error:
             raise HTTPException(status_code=502, detail="Market data service unavailable") from error
         return {
             "response": response["text"],
@@ -222,7 +183,7 @@ async def _chat(message: ChatMessage):
     if is_stock_request(message.message):
         try:
             response = await get_market_quote_answer(extract_stock_query(message.message), kind="stock")
-        except SERVICE_ERRORS as error:
+        except Exception as error:
             raise HTTPException(status_code=502, detail="Market data service unavailable") from error
         return {
             "response": response["text"],
@@ -235,7 +196,7 @@ async def _chat(message: ChatMessage):
     if is_commodities_request(message.message):
         try:
             response = await get_commodities_answer(message.message)
-        except SERVICE_ERRORS as error:
+        except Exception as error:
             raise HTTPException(status_code=502, detail="Commodities service unavailable") from error
         return {
             "response": response["text"],
@@ -252,7 +213,7 @@ async def _chat(message: ChatMessage):
         # market_service.py) — un mot non reconnu ne doit pas tomber ici silencieusement.
         try:
             response = await get_market_overview_answer()
-        except SERVICE_ERRORS as error:
+        except Exception as error:
             raise HTTPException(status_code=502, detail="Market overview service unavailable") from error
         return {
             "response": response["text"],
@@ -282,43 +243,15 @@ async def _chat(message: ChatMessage):
         # bourse/cours, il n'y a qu'une seule sous-catégorie ici.
         try:
             response = await get_king_answer(message.message)
-        except SERVICE_ERRORS as error:
+        except Exception as error:
             raise HTTPException(status_code=502, detail="Kings database service unavailable") from error
-        # data : soit une fiche de roi précis ("king", objet), soit une liste ("kings_list",
-        # tableau — liste complète ou désambiguïsation) pour que le frontend affiche une frise
-        # chronologique plutôt qu'un mur de texte (demande explicite de l'utilisatrice).
         return {
             "response": response["text"],
-            "data": response.get("king") if response.get("king") is not None else response.get("kings_list"),
+            "data": response.get("king"),
             "context": message.context,
             "status": "success",
             "source": "local",
             "source_type": "king",
-        }
-
-    if calendar_assistant.is_calendar_request(message.message):
-        # Détection large (voir calendar_assistant.py) : un faux positif atterrit juste ici et
-        # Claude répond normalement sans appeler d'outil — pas de risque à être permissif.
-        if not gcal.is_configured() or not gcal.is_connected():
-            return {
-                "response": "Ton Google Agenda n'est pas encore connecté. Va dans l'onglet Agenda pour le connecter, puis redemande-moi.",
-                "context": message.context,
-                "status": "success",
-                "source": "local",
-                "source_type": "calendar_not_connected",
-            }
-        if claude_service.client is None:
-            raise HTTPException(status_code=503, detail="Claude API is not configured")
-        try:
-            response = await calendar_assistant.run(message.message, claude_service.client, settings.CLAUDE_MODEL)
-        except SERVICE_ERRORS as error:
-            raise HTTPException(status_code=502, detail="Assistant agenda indisponible") from error
-        return {
-            "response": response,
-            "context": message.context,
-            "status": "success",
-            "source": "ai",
-            "source_type": "calendar_assistant",
         }
 
     if claude_service.client is None:
@@ -332,29 +265,12 @@ async def _chat(message: ChatMessage):
             "status": "success",
             "source": "ai",
         }
-    except (APIError, httpx.HTTPError, IndexError, KeyError, TypeError) as error:
+    except Exception as error:
         if getattr(error, "status_code", None) == 401:
             raise HTTPException(status_code=502, detail="Claude API key is invalid or expired") from error
         raise HTTPException(status_code=502, detail="Claude API request failed") from error
 
 @router.get("/history")
-async def get_history(conversation_id: str | None = None, limit: int = 100):
-    """Return persisted chat history, optionally scoped to one conversation."""
-    limit = max(1, min(limit, 500))
-    async with async_session() as session:
-        query = select(Message).order_by(Message.created_at.asc()).limit(limit)
-        if conversation_id:
-            query = query.where(Message.conversation_id == conversation_id)
-        messages = (await session.execute(query)).scalars().all()
-    return {
-        "messages": [
-            {
-                "id": item.id,
-                "conversation_id": item.conversation_id,
-                "role": item.role,
-                "content": item.content,
-                "created_at": item.created_at.isoformat(),
-            }
-            for item in messages
-        ]
-    }
+async def get_history():
+    """Get chat history"""
+    return {"messages": []}

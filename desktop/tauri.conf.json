@@ -1,11 +1,15 @@
 {
-  "build": {
-    "beforeBuildCommand": "npm run build",
-    "beforeDevCommand": "npm run dev",
-    "devPath": "http://localhost:5173",
-    "frontendDist": "../frontend/dist"
+  "package": {
+    "productName": "PC Assistant",
+    "version": "0.1.0"
   },
-  "app": {
+  "build": {
+    "beforeBuildCommand": "cd ../frontend && npm run build",
+    "beforeDevCommand": "cd ../frontend && npm run dev",
+    "devPath": "http://localhost:5173",
+    "distDir": "../frontend/dist"
+  },
+  "tauri": {
     "windows": [
       {
         "title": "PC Assistant",
@@ -16,10 +20,8 @@
       }
     ],
     "security": {
-      "csp": null
-    }
-  },
-  "tauri": {
+      "csp": "default-src 'self'; connect-src 'self' http://127.0.0.1:8000 http://localhost:8000; img-src 'self' data:; style-src 'self' 'unsafe-inline'"
+    },
     "allowlist": {
       "all": false,
       "shell": {
