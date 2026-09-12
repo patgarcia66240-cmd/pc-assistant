@@ -1,0 +1,249 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="1150" viewBox="0 0 1600 1150" role="img" aria-labelledby="title desc">
+  <title id="title">Guide de création d'un Plugin ARIA</title>
+  <desc id="desc">Architecture, manifest.json, routes FastAPI, chat handler, cycle de vie et composant React pour les plugins ARIA.</desc>
+  <defs>
+    <linearGradient id="page" x1="0" y1="0" x2="1600" y2="1150" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#081120"/>
+      <stop offset="1" stop-color="#111827"/>
+    </linearGradient>
+    <linearGradient id="brand" x1="0" y1="0" x2="1" y2="1">
+      <stop stop-color="#3B82F6"/>
+      <stop offset="1" stop-color="#06B6D4"/>
+    </linearGradient>
+    <linearGradient id="accentPurple" x1="0" y1="0" x2="1" y2="1">
+      <stop stop-color="#8B5CF6"/>
+      <stop offset="1" stop-color="#EC4899"/>
+    </linearGradient>
+    <linearGradient id="accentGreen" x1="0" y1="0" x2="1" y2="1">
+      <stop stop-color="#10B981"/>
+      <stop offset="1" stop-color="#059669"/>
+    </linearGradient>
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="8" stdDeviation="12" flood-color="#000000" flood-opacity=".28"/>
+    </filter>
+    <marker id="arrowBlue" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0 0 10 5 0 10Z" fill="#60A5FA"/>
+    </marker>
+    <marker id="arrowCyan" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0 0 10 5 0 10Z" fill="#22D3EE"/>
+    </marker>
+    <style>
+      .title { font: 700 34px "Segoe UI", Arial, sans-serif; fill: #F8FAFC; }
+      .subtitle { font: 400 16px "Segoe UI", Arial, sans-serif; fill: #94A3B8; }
+      .section { font: 700 15px "Segoe UI", Arial, sans-serif; letter-spacing: 1.5px; fill: #7DD3FC; }
+      .box-title { font: 700 18px "Segoe UI", Arial, sans-serif; fill: #F8FAFC; }
+      .box-text { font: 400 14px "Segoe UI", Arial, sans-serif; fill: #CBD5E1; }
+      .code-text { font: 500 13px "Consolas", "Fira Code", monospace; fill: #E2E8F0; }
+      .code-key { fill: #38BDF8; font-weight: 600; }
+      .code-str { fill: #4ADE80; }
+      .code-num { fill: #FACC15; }
+      .code-bool { fill: #F472B6; }
+      .code-comment { fill: #64748B; font-style: italic; }
+      .small { font: 400 12px "Segoe UI", Arial, sans-serif; fill: #94A3B8; }
+      .chip { font: 600 12px "Segoe UI", Arial, sans-serif; fill: #E0F2FE; }
+      .badge-purple { font: 600 12px "Segoe UI", Arial, sans-serif; fill: #F3E8FF; }
+      .flow { fill: none; stroke: #60A5FA; stroke-width: 2.4; marker-end: url(#arrowBlue); }
+      .flow-bi { fill: none; stroke: #22D3EE; stroke-width: 2.4; marker-start: url(#arrowCyan); marker-end: url(#arrowCyan); }
+    </style>
+  </defs>
+
+  <!-- Fond global -->
+  <rect width="1600" height="1150" fill="url(#page)"/>
+  <circle cx="1450" cy="90" r="240" fill="#0EA5E9" opacity=".05"/>
+  <circle cx="120" cy="1050" r="260" fill="#8B5CF6" opacity=".05"/>
+
+  <!-- En-tête -->
+  <g transform="translate(70 45)">
+    <rect width="64" height="64" rx="16" fill="url(#brand)" filter="url(#shadow)"/>
+    <path d="M22 20h20v4H22zm0 8h20v4H22zm0 8h14v4H22z" fill="#0F2B5C" opacity=".3"/>
+    <path d="M20 18l12-8 12 8v20l-12 8-12-8Z" fill="none" stroke="#FFFFFF" stroke-width="2.5" stroke-linejoin="round"/>
+    <circle cx="32" cy="28" r="4" fill="#A5F3FC"/>
+  </g>
+  <text x="155" y="73" class="title">Guide de Création d'un Plugin ARIA</text>
+  <text x="155" y="99" class="subtitle">Architecture modulaire · Backend FastAPI · Manifeste JSON · Handlers Chat · Interface React</text>
+
+  <!-- ================= SECTION 1 : STRUCTURE DU PLUGIN ================= -->
+  <text x="70" y="150" class="section">1. STRUCTURE DES FICHIERS &amp; EMPLACEMENT</text>
+  <g filter="url(#shadow)">
+    <rect x="70" y="170" width="680" height="420" rx="18" fill="#101B30" stroke="#2563EB" stroke-width="1.8"/>
+    
+    <!-- Header de la boîte -->
+    <rect x="90" y="190" width="640" height="44" rx="10" fill="#1E293B"/>
+    <text x="110" y="217" class="box-title">📂 Arborescence du projet ARIA</text>
+    <rect x="580" y="200" width="130" height="24" rx="12" fill="#2563EB"/>
+    <text x="592" y="216" class="chip">backend/plugins/</text>
+
+    <!-- Arborescence fichiers -->
+    <g transform="translate(100 255)">
+      <!-- backend/plugins/mon_plugin/ -->
+      <text x="10" y="20" class="code-text" style="fill:#38BDF8; font-weight:700;">backend/plugins/mon_plugin/</text>
+      
+      <!-- manifest.json -->
+      <line x1="25" y1="32" x2="25" y2="180" stroke="#334155" stroke-width="2"/>
+      <line x1="25" y1="50" x2="45" y2="50" stroke="#334155" stroke-width="2"/>
+      <rect x="50" y="36" width="130" height="26" rx="6" fill="#1E293B" stroke="#38BDF8" stroke-width="1"/>
+      <text x="60" y="53" class="code-text" style="fill:#38BDF8;">manifest.json</text>
+      <text x="190" y="53" class="small">Métadonnées, prefix routeur, onglet frontend, options chat</text>
+
+      <!-- router.py -->
+      <line x1="25" y1="82" x2="45" y2="82" stroke="#334155" stroke-width="2"/>
+      <rect x="50" y="68" width="100" height="26" rx="6" fill="#1E293B" stroke="#4ADE80" stroke-width="1"/>
+      <text x="60" y="85" class="code-text" style="fill:#4ADE80;">router.py</text>
+      <text x="160" y="85" class="small">Endpoints REST FastAPI (ex: GET /api/mon_plugin/status)</text>
+
+      <!-- chat_handler.py -->
+      <line x1="25" y1="114" x2="45" y2="114" stroke="#334155" stroke-width="2"/>
+      <rect x="50" y="100" width="140" height="26" rx="6" fill="#1E293B" stroke="#FACC15" stroke-width="1"/>
+      <text x="60" y="117" class="code-text" style="fill:#FACC15;">chat_handler.py</text>
+      <text x="200" y="117" class="small">Optionnel : intercepte le chat (matches &amp; handle)</text>
+
+      <!-- lifecycle.py -->
+      <line x1="25" y1="146" x2="45" y2="146" stroke="#334155" stroke-width="2"/>
+      <rect x="50" y="132" width="115" height="26" rx="6" fill="#1E293B" stroke="#EC4899" stroke-width="1"/>
+      <text x="60" y="149" class="code-text" style="fill:#EC4899;">lifecycle.py</text>
+      <text x="175" y="149" class="small">Optionnel : hooks on_startup() / on_shutdown()</text>
+
+      <!-- models.py -->
+      <line x1="25" y1="178" x2="45" y2="178" stroke="#334155" stroke-width="2"/>
+      <rect x="50" y="164" width="100" height="26" rx="6" fill="#1E293B" stroke="#A78BFA" stroke-width="1"/>
+      <text x="60" y="181" class="code-text" style="fill:#A78BFA;">models.py</text>
+      <text x="160" y="181" class="small">Optionnel : modèles Pydantic &amp; tables SQLite</text>
+
+      <!-- Frontend part -->
+      <text x="10" y="230" class="code-text" style="fill:#38BDF8; font-weight:700;">frontend/src/components/</text>
+      <line x1="25" y1="242" x2="25" y2="260" stroke="#334155" stroke-width="2"/>
+      <line x1="25" y1="260" x2="45" y2="260" stroke="#334155" stroke-width="2"/>
+      <rect x="50" y="246" width="150" height="26" rx="6" fill="#1E293B" stroke="#60A5FA" stroke-width="1"/>
+      <text x="60" y="263" class="code-text" style="fill:#60A5FA;">MonPlugin.jsx</text>
+      <text x="210" y="263" class="small">Composant React affiché dans son onglet dédié</text>
+    </g>
+
+    <!-- Note d'état -->
+    <rect x="90" y="535" width="640" height="36" rx="8" fill="#172554" stroke="#1E40AF"/>
+    <text x="105" y="558" class="small" style="fill:#93C5FD;">💡 L'état activé/désactivé est mémorisé dans <tspan style="font-family:monospace; font-weight:bold;">backend/data/plugins_state.json</tspan></text>
+  </g>
+
+  <!-- ================= SECTION 2 : MANIFEST JSON ================= -->
+  <text x="780" y="150" class="section">2. CONTENU DU MANIFESTE (MANIFEST.JSON)</text>
+  <g filter="url(#shadow)">
+    <rect x="780" y="170" width="750" height="420" rx="18" fill="#101B30" stroke="#38BDF8" stroke-width="1.8"/>
+
+    <!-- Code Block -->
+    <rect x="800" y="190" width="710" height="380" rx="12" fill="#090D16" stroke="#1E293B"/>
+    <g transform="translate(820 215)" class="code-text">
+      <text x="0" y="0"><tspan style="fill:#94A3B8;">{</tspan></text>
+      <text x="20" y="22"><tspan class="code-key">"id"</tspan><tspan style="fill:#94A3B8;">: </tspan><tspan class="code-str">"mon_plugin"</tspan><tspan style="fill:#94A3B8;">,</tspan> <tspan class="code-comment">// Identifiant unique du plugin</tspan></text>
+      <text x="20" y="44"><tspan class="code-key">"name"</tspan><tspan style="fill:#94A3B8;">: </tspan><tspan class="code-str">"Mon Super Plugin"</tspan><tspan style="fill:#94A3B8;">,</tspan></text>
+      <text x="20" y="66"><tspan class="code-key">"version"</tspan><tspan style="fill:#94A3B8;">: </tspan><tspan class="code-str">"0.1.0"</tspan><tspan style="fill:#94A3B8;">,</tspan></text>
+      <text x="20" y="88"><tspan class="code-key">"description"</tspan><tspan style="fill:#94A3B8;">: </tspan><tspan class="code-str">"Description de mon plugin pour ARIA"</tspan><tspan style="fill:#94A3B8;">,</tspan></text>
+      <text x="20" y="110"><tspan class="code-key">"router_prefix"</tspan><tspan style="fill:#94A3B8;">: </tspan><tspan class="code-str">"/api/mon_plugin"</tspan><tspan style="fill:#94A3B8;">,</tspan> <tspan class="code-comment">// Monte router.py sur FastAPI</tspan></text>
+      <text x="20" y="132"><tspan class="code-key">"enabled_by_default"</tspan><tspan style="fill:#94A3B8;">: </tspan><tspan class="code-bool">true</tspan><tspan style="fill:#94A3B8;">,</tspan></text>
+      <text x="20" y="154"><tspan class="code-key">"chat_handler"</tspan><tspan style="fill:#94A3B8;">: </tspan><tspan class="code-bool">true</tspan><tspan style="fill:#94A3B8;">,</tspan> <tspan class="code-key">"chat_handler_order"</tspan><tspan style="fill:#94A3B8;">: </tspan><tspan class="code-num">90</tspan><tspan style="fill:#94A3B8;">,</tspan></text>
+      <text x="20" y="176"><tspan class="code-key">"lifecycle"</tspan><tspan style="fill:#94A3B8;">: </tspan><tspan class="code-bool">false</tspan><tspan style="fill:#94A3B8;">,</tspan> <tspan class="code-comment">// True si lifecycle.py est présent</tspan></text>
+      <text x="20" y="198"><tspan class="code-key">"frontend"</tspan><tspan style="fill:#94A3B8;">: {</tspan></text>
+      <text x="40" y="220"><tspan class="code-key">"component"</tspan><tspan style="fill:#94A3B8;">: </tspan><tspan class="code-str">"MonPlugin"</tspan><tspan style="fill:#94A3B8;">,</tspan> <tspan class="code-comment">// Nom du composant dans React</tspan></text>
+      <text x="40" y="242"><tspan class="code-key">"tab"</tspan><tspan style="fill:#94A3B8;">: {</tspan></text>
+      <text x="60" y="264"><tspan class="code-key">"id"</tspan><tspan style="fill:#94A3B8;">: </tspan><tspan class="code-str">"mon_plugin"</tspan><tspan style="fill:#94A3B8;">,</tspan></text>
+      <text x="60" y="286"><tspan class="code-key">"label"</tspan><tspan style="fill:#94A3B8;">: </tspan><tspan class="code-str">"Mon Plugin"</tspan><tspan style="fill:#94A3B8;">,</tspan> <tspan class="code-key">"icon"</tspan><tspan style="fill:#94A3B8;">: </tspan><tspan class="code-str">"sparkles"</tspan><tspan style="fill:#94A3B8;">,</tspan> <tspan class="code-key">"order"</tspan><tspan style="fill:#94A3B8;">: </tspan><tspan class="code-num">95</tspan></text>
+      <text x="40" y="308"><tspan style="fill:#94A3B8;">}</tspan></text>
+      <text x="20" y="330"><tspan style="fill:#94A3B8;">}</tspan></text>
+      <text x="0" y="352"><tspan style="fill:#94A3B8;">}</tspan></text>
+    </g>
+  </g>
+
+  <!-- ================= SECTION 3 : COMPOSANTS DÉVELOPPEUR ================= -->
+  <text x="70" y="625" class="section">3. COMPOSANTS ET CODE CLEF (PYTHON &amp; REACT)</text>
+  
+  <g filter="url(#shadow)">
+    <!-- Carte 1 : router.py -->
+    <rect x="70" y="645" width="440" height="230" rx="16" fill="#101B30" stroke="#4ADE80" stroke-width="1.5"/>
+    <rect x="90" y="665" width="400" height="32" rx="8" fill="#064E3B"/>
+    <text x="105" y="686" class="box-title" style="fill:#6EE7B7; font-size:15px;">🐍 router.py (FastAPI REST)</text>
+    <g transform="translate(90 715)" class="code-text" style="font-size:12px;">
+      <text x="0" y="15"><tspan style="fill:#F472B6;">from</tspan> fastapi <tspan style="fill:#F472B6;">import</tspan> APIRouter</text>
+      <text x="0" y="35">router = APIRouter()</text>
+      <text x="0" y="60"><tspan style="fill:#38BDF8;">@router.get</tspan>(<tspan class="code-str">"/status"</tspan>)</text>
+      <text x="0" y="80"><tspan style="fill:#F472B6;">async def</tspan> <tspan style="fill:#6EE7B7;">get_status</tspan>():</text>
+      <text x="20" y="100"><tspan style="fill:#F472B6;">return</tspan> {<tspan class="code-str">"status"</tspan>: <tspan class="code-str">"ok"</tspan>, <tspan class="code-str">"plugin"</tspan>: <tspan class="code-str">"active"</tspan>}</text>
+    </g>
+
+    <!-- Carte 2 : chat_handler.py -->
+    <rect x="530" y="645" width="460" height="230" rx="16" fill="#101B30" stroke="#FACC15" stroke-width="1.5"/>
+    <rect x="550" y="665" width="420" height="32" rx="8" fill="#78350F"/>
+    <text x="565" y="686" class="box-title" style="fill:#FDE68A; font-size:15px;">💬 chat_handler.py (IA &amp; Chat)</text>
+    <g transform="translate(550 715)" class="code-text" style="font-size:12px;">
+      <text x="0" y="15"><tspan style="fill:#F472B6;">def</tspan> <tspan style="fill:#FDE68A;">matches</tspan>(message: str) -&gt; bool:</text>
+      <text x="20" y="35"><tspan style="fill:#F472B6;">return</tspan> <tspan class="code-str">"mon_action"</tspan> <tspan style="fill:#F472B6;">in</tspan> message.lower()</text>
+      <text x="0" y="65"><tspan style="fill:#F472B6;">async def</tspan> <tspan style="fill:#FDE68A;">handle</tspan>(message: str, context: dict) -&gt; dict:</text>
+      <text x="20" y="85">res = <tspan class="code-str">"Action exécutée avec succès!"</tspan></text>
+      <text x="20" y="105"><tspan style="fill:#F472B6;">return</tspan> {<tspan class="code-str">"response"</tspan>: res, <tspan class="code-str">"handled_by"</tspan>: <tspan class="code-str">"mon_plugin"</tspan>}</text>
+    </g>
+
+    <!-- Carte 3 : React Component -->
+    <rect x="1010" y="645" width="520" height="230" rx="16" fill="#101B30" stroke="#60A5FA" stroke-width="1.5"/>
+    <rect x="1030" y="665" width="480" height="32" rx="8" fill="#1E3A8A"/>
+    <text x="1045" y="686" class="box-title" style="fill:#93C5FD; font-size:15px;">⚛️ MonPlugin.jsx (Interface Utilisateur React)</text>
+    <g transform="translate(1030 715)" class="code-text" style="font-size:12px;">
+      <text x="0" y="15"><tspan style="fill:#F472B6;">export default function</tspan> <tspan style="fill:#93C5FD;">MonPlugin</tspan>() {</text>
+      <text x="20" y="35"><tspan style="fill:#F472B6;">const</tspan> [data, setData] = useState(null);</text>
+      <text x="20" y="55">useEffect(() =&gt; {</text>
+      <text x="40" y="75">fetch(<tspan class="code-str">"/api/mon_plugin/status"</tspan>).then(r =&gt; r.json()).then(setData);</text>
+      <text x="20" y="95">}, []);</text>
+      <text x="20" y="115"><tspan style="fill:#F472B6;">return</tspan> &lt;<tspan style="fill:#38BDF8;">div</tspan> className=<tspan class="code-str">"p-6 bg-slate-900 text-white"</tspan>&gt;{data?.status}&lt;/<tspan style="fill:#38BDF8;">div</tspan>&gt;;</text>
+      <text x="0" y="135">}</text>
+    </g>
+  </g>
+
+  <!-- ================= SECTION 4 : FLUX D'ACTIVATION & ÉTAPES ================= -->
+  <text x="70" y="910" class="section">4. DÉROULEMENT DU DÉVELOPPEMENT EN 4 ÉTAPES CLAIRS</text>
+
+  <g filter="url(#shadow)" transform="translate(70 930)">
+    <!-- Étape 1 -->
+    <rect x="0" y="0" width="345" height="170" rx="16" fill="#172033" stroke="#38BDF8" stroke-width="1.5"/>
+    <circle cx="35" cy="35" r="18" fill="#2563EB"/>
+    <text x="30" y="41" class="box-title" style="fill:#FFF;">1</text>
+    <text x="68" y="40" class="box-title">Créer le dossier</text>
+    <text x="20" y="72" class="box-text">Créer <tspan style="font-family:monospace; color:#38BDF8;">backend/plugins/mon_plugin/</tspan></text>
+    <text x="20" y="95" class="box-text">Ajouter le fichier <tspan style="font-family:monospace; color:#38BDF8;">manifest.json</tspan></text>
+    <text x="20" y="118" class="small">Définir id, router_prefix et onglet UI</text>
+
+    <!-- Flèche 1 -> 2 -->
+    <path d="M352 85 H378" stroke="#38BDF8" stroke-width="2.5" marker-end="url(#arrowBlue)"/>
+
+    <!-- Étape 2 -->
+    <rect x="385" y="0" width="345" height="170" rx="16" fill="#172033" stroke="#4ADE80" stroke-width="1.5"/>
+    <circle cx="420" cy="35" r="18" fill="#059669"/>
+    <text x="415" y="41" class="box-title" style="fill:#FFF;">2</text>
+    <text x="453" y="40" class="box-title">Développer le Code</text>
+    <text x="405" y="72" class="box-text">Écrire <tspan style="font-family:monospace; color:#4ADE80;">router.py</tspan> pour les API REST</text>
+    <text x="405" y="95" class="box-text">Écrire <tspan style="font-family:monospace; color:#FACC15;">chat_handler.py</tspan> si besoin</text>
+    <text x="405" y="118" class="small">Utiliser SQLite/Pydantic si nécessaire</text>
+
+    <!-- Flèche 2 -> 3 -->
+    <path d="M737 85 H763" stroke="#4ADE80" stroke-width="2.5" marker-end="url(#arrowCyan)"/>
+
+    <!-- Étape 3 -->
+    <rect x="770" y="0" width="345" height="170" rx="16" fill="#172033" stroke="#60A5FA" stroke-width="1.5"/>
+    <circle cx="805" cy="35" r="18" fill="#1D4ED8"/>
+    <text x="800" y="41" class="box-title" style="fill:#FFF;">3</text>
+    <text x="838" y="40" class="box-title">Créer la vue React</text>
+    <text x="790" y="72" class="box-text">Ajouter <tspan style="font-family:monospace; color:#60A5FA;">MonPlugin.jsx</tspan> dans React</text>
+    <text x="790" y="95" class="box-text">Déclarer l'icône dans <tspan style="font-family:monospace; color:#60A5FA;">App.jsx</tspan></text>
+    <text x="790" y="118" class="small">Design responsive avec Tailwind CSS</text>
+
+    <!-- Flèche 3 -> 4 -->
+    <path d="M1122 85 H1148" stroke="#60A5FA" stroke-width="2.5" marker-end="url(#arrowBlue)"/>
+
+    <!-- Étape 4 -->
+    <rect x="1155" y="0" width="305" height="170" rx="16" fill="#172033" stroke="#A78BFA" stroke-width="1.5"/>
+    <circle cx="1190" cy="35" r="18" fill="#7C3AED"/>
+    <text x="1185" y="41" class="box-title" style="fill:#FFF;">4</text>
+    <text x="1223" y="40" class="box-title">Charger &amp; Activer</text>
+    <text x="1175" y="72" class="box-text">Redémarrer le backend ARIA</text>
+    <text x="1175" y="95" class="box-text">Vérifier dans <tspan style="font-family:monospace; color:#A78BFA;">Paramètres &gt; Plugins</tspan></text>
+    <text x="1175" y="118" class="small">Prêt à l'emploi et intégré au Chat !</text>
+  </g>
+
+  <!-- Bas de page footer -->
+  <text x="70" y="1125" class="small" style="fill:#64748B;">PC Assistant ARIA — Documentation des Plugins · Fichier généré : docs/images/aria-plugin-guide.svg</text>
+</svg>
