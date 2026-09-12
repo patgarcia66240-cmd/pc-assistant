@@ -57,6 +57,10 @@ backend/data/tts/*.onnx.json
 # Préférences locales d'activation des plugins
 backend/data/plugins_state.json
 
+# État et journaux produits pendant l'exécution
+backend/data/telegram_status.json
+run-logs/
+
 # Database
 *.db
 *.sqlite
