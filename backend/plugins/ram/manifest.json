@@ -1,0 +1,10 @@
+{
+  "id": "ram",
+  "name": "RAM",
+  "version": "0.1.0",
+  "description": "Mémoire vive disponible/totale de ce PC, sur demande dans le chat — extrait de routes/chat.py le 12/09/2026",
+  "enabled_by_default": true,
+  "chat_handler": true,
+  "chat_handler_order": 10,
+  "chat_error_message": "RAM service unavailable"
+}

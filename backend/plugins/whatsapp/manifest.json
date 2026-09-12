@@ -1,0 +1,17 @@
+{
+  "id": "whatsapp",
+  "name": "WhatsApp",
+  "version": "0.1.0",
+  "description": "Pont avec WhatsApp via un service Node.js local (whatsapp-bridge/, Baileys non officiel) : reçoit les messages entrants d'un numéro dédié et fait répondre ARIA",
+  "router_prefix": "/api/whatsapp",
+  "enabled_by_default": false,
+  "frontend": {
+    "component": "WhatsAppPanel",
+    "tab": {
+      "id": "whatsapp",
+      "label": "WhatsApp",
+      "icon": "message",
+      "order": 85
+    }
+  }
+}

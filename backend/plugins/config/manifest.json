@@ -1,0 +1,8 @@
+{
+  "id": "config",
+  "name": "Configuration ARIA",
+  "version": "0.1.0",
+  "description": "Configuration persistante d'ARIA, de la localisation et du fournisseur IA",
+  "router_prefix": "/api/config",
+  "enabled_by_default": true
+}

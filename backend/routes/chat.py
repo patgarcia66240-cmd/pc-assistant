@@ -1,77 +1,34 @@
 """Chat routes with Claude API integration"""
-import re
+import asyncio
+import contextlib
+import json
 import logging
+from collections.abc import Awaitable, Callable
 from datetime import datetime, timezone
 from uuid import uuid4
 import httpx
 from anthropic import APIError
 from fastapi import APIRouter, HTTPException
+from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
 from sqlalchemy import select
-from config import settings
 from db import async_session
 from models.conversation import Conversation, Message
 from services.claude_service import claude_service
-from services import calendar_assistant
-from services import google_calendar_service as gcal
-from services.local_service import (
-    get_ram_answer,
-    get_g7_time_answer,
-    get_time_answer,
-    get_weather_answer,
-    is_ram_request,
-    is_world_time_request,
-    is_time_request,
-    is_weather_request,
-)
-from services.city_info_service import (
-    get_city_info,
-    is_city_info_request,
-    is_city_refresh_request,
-    is_departement_info_request,
-    is_region_info_request,
-    fetch_departement_info,
-    fetch_region_info,
-)
-from services.market_service import (
-    get_cac40_answer,
-    get_commodities_answer,
-    get_forex_answer,
-    get_market_overview_answer,
-    get_market_quote_answer,
-    get_unknown_bourse_answer,
-    is_bourse_request,
-    is_cac40_request,
-    is_commodities_request,
-    is_forex_request,
-    is_market_overview_request,
-    is_stock_request,
-    is_etf_request,
-    extract_stock_query,
-    extract_etf_query,
-)
-from services.kings_service import (
-    get_king_answer,
-    is_king_request,
-)
+from plugin_loader import get_chat_handlers
 
 router = APIRouter()
 logger = logging.getLogger(__name__)
 SERVICE_ERRORS = (httpx.HTTPError, LookupError, IndexError, KeyError, ValueError, TypeError)
 
+# Chantier de migration terminé le 12/09/2026 : TOUT ce qui était codé en dur ici (RAM,
+# ville/département/région, heure/météo, bourse, agenda IA) est passé en plugin, dans le même
+# ordre relatif qu'avant (voir chat_handler_order de chaque manifest : ram=10, city_info=20,
+# heure_meteo=30, bourse=40, quiz=90, kings=100, calendar=200...). _chat() ne fait plus que
+# parcourir PLUGIN_CHAT_HANDLERS (triés par chat_handler_order) et retomber sur Claude seul si
+# aucun handler ne matche — voir plugin_loader.get_chat_handlers() pour le contrat exact.
+PLUGIN_CHAT_HANDLERS = get_chat_handlers()
 
-def parse_time_response(response: str) -> dict:
-    match = re.search(
-        r"^Heure(?: en France| à (?P<location>.+?))? : (?P<time>\d{2}:\d{2}), le (?P<date>.+?) "
-        r"\((?P<offset>UTC[+-]\d+), (?P<season>heure d'été|heure d'hiver)\)\. "
-        r"Éphémérides : lever du soleil à (?P<sunrise>\d{2}:\d{2}), coucher du soleil à (?P<sunset>\d{2}:\d{2})\.?$",
-        response,
-    )
-    if not match:
-        return {}
-    data = match.groupdict()
-    data["location"] = data["location"] or "France"
-    return data
 
 class ChatMessage(BaseModel):
     message: str
@@ -105,227 +62,77 @@ async def chat(message: ChatMessage):
     result["conversation_id"] = conversation_id
     return result
 
-async def _chat(message: ChatMessage):
+
+@router.post("/stream")
+async def chat_stream(message: ChatMessage):
+    conversation_id = message.conversation_id or str(uuid4())
+
+    async def event_stream():
+        queue = asyncio.Queue()
+        finished = object()
+
+        async def emit_text(text: str) -> None:
+            await queue.put({"type": "delta", "text": text})
+
+        async def produce() -> None:
+            try:
+                result = await _chat(message, on_text=emit_text)
+                if result.get("status") == "success":
+                    await _persist_exchange(conversation_id, message.message, result["response"])
+                result["conversation_id"] = conversation_id
+                await queue.put({"type": "done", "data": result})
+            except HTTPException as error:
+                await queue.put({"type": "error", "detail": error.detail})
+            finally:
+                await queue.put(finished)
+
+        producer = asyncio.create_task(produce())
+        try:
+            while True:
+                event = await queue.get()
+                if event is finished:
+                    break
+                yield json.dumps(event, ensure_ascii=False) + "\n"
+        finally:
+            if not producer.done():
+                producer.cancel()
+            with contextlib.suppress(asyncio.CancelledError):
+                await producer
+
+    return StreamingResponse(
+        event_stream(),
+        media_type="application/x-ndjson",
+        headers={"Cache-Control": "no-store"},
+    )
+
+
+async def _chat(
+    message: ChatMessage,
+    on_text: Callable[[str], Awaitable[None]] | None = None,
+):
     """Send message to ARIA"""
     if not message.message.strip():
         raise HTTPException(status_code=422, detail="Message cannot be empty")
 
-    if is_ram_request(message.message):
-        return {"response": get_ram_answer(), "context": message.context, "status": "success", "source": "local", "source_type": "system"}
-    if is_city_refresh_request(message.message):
-        query = re.sub(
-            r"^(?:maj|force|actualiser?|rafra[iî]chis|mets?\s+à\s+jour)\s+infos?(?:\s+sur)?\s+",
-            "",
-            message.message.strip(),
-            flags=re.IGNORECASE,
-        )
+    # Handlers fournis par les plugins (voir PLUGIN_CHAT_HANDLERS plus haut), triés par
+    # chat_handler_order croissant. Le premier dont matches() renvoie True traite le message ;
+    # une HTTPException levée par un handler (ex. 404 ville inconnue, 503 Claude non configuré)
+    # remonte telle quelle, les autres erreurs de service suivent le contrat générique
+    # (SERVICE_ERRORS -> 502 avec le chat_error_message du manifest).
+    for handler in PLUGIN_CHAT_HANDLERS:
+        if not handler["matches"](message.message):
+            continue
         try:
-            city_info = await get_city_info(query, force_refresh=True)
-        except LookupError as error:
-            raise HTTPException(status_code=404, detail=str(error)) from error
-        except (httpx.HTTPError, IndexError, KeyError) as error:
-            raise HTTPException(status_code=502, detail="City information service unavailable") from error
-        return {"response": f"Informations actualisées sur {city_info['city']}", "data": city_info, "context": message.context, "status": "success", "source": "local", "source_type": "city_info"}
-    if is_departement_info_request(message.message):
-        query = re.sub(r"^(?:infos?|informations?)\s+d[ée]partements?\s+", "", message.message.strip(), flags=re.IGNORECASE)
-        try:
-            dept_info = await fetch_departement_info(query)
-        except LookupError as error:
-            raise HTTPException(status_code=404, detail=str(error)) from error
-        except (httpx.HTTPError, IndexError, KeyError) as error:
-            raise HTTPException(status_code=502, detail="City information service unavailable") from error
-        return {"response": f"Informations sur le département {dept_info['nom']}", "data": dept_info, "context": message.context, "status": "success", "source": "local", "source_type": "departement_info"}
-    if is_region_info_request(message.message):
-        query = re.sub(r"^(?:infos?|informations?)\s+r[ée]gions?\s+", "", message.message.strip(), flags=re.IGNORECASE)
-        try:
-            region_info = await fetch_region_info(query)
-        except LookupError as error:
-            raise HTTPException(status_code=404, detail=str(error)) from error
-        except (httpx.HTTPError, IndexError, KeyError) as error:
-            raise HTTPException(status_code=502, detail="City information service unavailable") from error
-        return {"response": f"Informations sur la région {region_info['nom']}", "data": region_info, "context": message.context, "status": "success", "source": "local", "source_type": "region_info"}
-    if is_city_info_request(message.message):
-        query = re.sub(r"^(?:infos?|informations?)(?:\s+sur)?\s+", "", message.message.strip(), flags=re.IGNORECASE)
-        try:
-            city_info = await get_city_info(query)
-        except LookupError as error:
-            raise HTTPException(status_code=404, detail=str(error)) from error
-        except (httpx.HTTPError, IndexError, KeyError) as error:
-            raise HTTPException(status_code=502, detail="City information service unavailable") from error
-        return {"response": f"Informations sur {city_info['city']}", "data": city_info, "context": message.context, "status": "success", "source": "local", "source_type": "city_info"}
-    if is_world_time_request(message.message):
-        return {"response": "Heure des capitales du G7", "data": get_g7_time_answer(), "context": message.context, "status": "success", "source": "local", "source_type": "world_time"}
-    if is_time_request(message.message):
-        try:
-            response = await get_time_answer(message.message, message.context.get("location"))
-        except (httpx.HTTPError, IndexError, KeyError, ValueError, TypeError) as error:
-            raise HTTPException(status_code=502, detail="Time service unavailable") from error
-        time_data = parse_time_response(response)
-        location_label = "Heure France"
-        if response.startswith("Heure à "):
-            location_name = response.removeprefix("Heure à ").split(" :", 1)[0]
-            country_name = location_name.rsplit(",", 1)[-1].strip() if "," in location_name else location_name
-            location_label = f"Heure {country_name}"
-        return {"response": response, "time_data": time_data, "time_label": location_label, "context": message.context, "status": "success", "source": "local", "source_type": "time"}
-    if is_weather_request(message.message):
-        try:
-            response = await get_weather_answer(message.message, message.context.get("location"))
+            result = await handler["handle"](message.message, message.context)
         except SERVICE_ERRORS as error:
-            raise HTTPException(status_code=502, detail="Weather service unavailable") from error
-        return {
-            "response": response["text"],
-            "context": message.context,
-            "status": "success",
-            "source": "local",
-            "source_type": "weather",
-            "weather_type": response["weather_type"],
-        }
-    if is_forex_request(message.message):
-        try:
-            response = await get_forex_answer()
-        except SERVICE_ERRORS as error:
-            raise HTTPException(status_code=502, detail="Forex service unavailable") from error
-        return {
-            "response": response["text"],
-            "data": {"rates": response["rates"], "date": response["date"]},
-            "context": message.context,
-            "status": "success",
-            "source": "local",
-            "source_type": "forex",
-        }
-    if is_cac40_request(message.message):
-        try:
-            response = await get_cac40_answer()
-        except SERVICE_ERRORS as error:
-            raise HTTPException(status_code=502, detail="CAC40 service unavailable") from error
-        return {
-            "response": response["text"],
-            "data": response.get("quote"),
-            "context": message.context,
-            "status": "success",
-            "source": "local",
-            "source_type": "cac40",
-        }
-    if is_etf_request(message.message):
-        try:
-            response = await get_market_quote_answer(extract_etf_query(message.message), kind="etf")
-        except SERVICE_ERRORS as error:
-            raise HTTPException(status_code=502, detail="Market data service unavailable") from error
-        return {
-            "response": response["text"],
-            "data": response["quote"],
-            "context": message.context,
-            "status": "success",
-            "source": "local",
-            "source_type": "etf",
-        }
-    if is_stock_request(message.message):
-        try:
-            response = await get_market_quote_answer(extract_stock_query(message.message), kind="stock")
-        except SERVICE_ERRORS as error:
-            raise HTTPException(status_code=502, detail="Market data service unavailable") from error
-        return {
-            "response": response["text"],
-            "data": response["quote"],
-            "context": message.context,
-            "status": "success",
-            "source": "local",
-            "source_type": "stock",
-        }
-    if is_commodities_request(message.message):
-        try:
-            response = await get_commodities_answer(message.message)
-        except SERVICE_ERRORS as error:
-            raise HTTPException(status_code=502, detail="Commodities service unavailable") from error
-        return {
-            "response": response["text"],
-            "data": response.get("quote"),
-            "context": message.context,
-            "status": "success",
-            "source": "local",
-            "source_type": "commodities",
-        }
-    if is_market_overview_request(message.message):
-        # « bourse infos »/« tendances »/« comment va » : vérifié après les catégories plus
-        # spécifiques (forex/cac40/etf/actions/matières premières), mais ce N'EST PAS un
-        # attrape-tout sur « bourse » seul (voir is_bourse_request plus bas et le commentaire dans
-        # market_service.py) — un mot non reconnu ne doit pas tomber ici silencieusement.
-        try:
-            response = await get_market_overview_answer()
-        except SERVICE_ERRORS as error:
-            raise HTTPException(status_code=502, detail="Market overview service unavailable") from error
-        return {
-            "response": response["text"],
-            "data": response["indices"],
-            "context": message.context,
-            "status": "success",
-            "source": "local",
-            "source_type": "market_overview",
-        }
-    if is_bourse_request(message.message):
-        # Vrai attrape-tout final : "bourse" est présent mais aucune sous-catégorie n'a été
-        # reconnue. On le dit clairement plutôt que de laisser tomber sur l'IA générale, qui
-        # pourrait inventer un chiffre boursier.
-        response = get_unknown_bourse_answer()
-        return {
-            "response": response["text"],
-            "context": message.context,
-            "status": "success",
-            "source": "local",
-            "source_type": "bourse_unknown",
-        }
-    if is_king_request(message.message):
-        # Fiches des rois de France servies depuis SQLite (data/kings.db), jamais par l'IA
-        # générative (demande explicite : ne pas appeler l'IA pour rien pour ces faits). Une
-        # seule fonction gère requête vide / roi non trouvé / plusieurs rois ambigus / roi trouvé
-        # (voir kings_service.get_king_answer) — pas besoin d'un attrape-tout séparé comme pour
-        # bourse/cours, il n'y a qu'une seule sous-catégorie ici.
-        try:
-            response = await get_king_answer(message.message)
-        except SERVICE_ERRORS as error:
-            raise HTTPException(status_code=502, detail="Kings database service unavailable") from error
-        # data : soit une fiche de roi précis ("king", objet), soit une liste ("kings_list",
-        # tableau — liste complète ou désambiguïsation) pour que le frontend affiche une frise
-        # chronologique plutôt qu'un mur de texte (demande explicite de l'utilisatrice).
-        return {
-            "response": response["text"],
-            "data": response.get("king") if response.get("king") is not None else response.get("kings_list"),
-            "context": message.context,
-            "status": "success",
-            "source": "local",
-            "source_type": "king",
-        }
+            raise HTTPException(status_code=502, detail=handler["error_message"]) from error
+        return {**result, "context": message.context, "status": "success"}
 
-    if calendar_assistant.is_calendar_request(message.message):
-        # Détection large (voir calendar_assistant.py) : un faux positif atterrit juste ici et
-        # Claude répond normalement sans appeler d'outil — pas de risque à être permissif.
-        if not gcal.is_configured() or not gcal.is_connected():
-            return {
-                "response": "Ton Google Agenda n'est pas encore connecté. Va dans l'onglet Agenda pour le connecter, puis redemande-moi.",
-                "context": message.context,
-                "status": "success",
-                "source": "local",
-                "source_type": "calendar_not_connected",
-            }
-        if claude_service.client is None:
-            raise HTTPException(status_code=503, detail="Claude API is not configured")
-        try:
-            response = await calendar_assistant.run(message.message, claude_service.client, settings.CLAUDE_MODEL)
-        except SERVICE_ERRORS as error:
-            raise HTTPException(status_code=502, detail="Assistant agenda indisponible") from error
-        return {
-            "response": response,
-            "context": message.context,
-            "status": "success",
-            "source": "ai",
-            "source_type": "calendar_assistant",
-        }
-
-    if claude_service.client is None:
-        raise HTTPException(status_code=503, detail="Claude API is not configured")
+    if not claude_service.is_configured():
+        raise HTTPException(status_code=503, detail="Le fournisseur IA sélectionné n'est pas configuré")
 
     try:
-        response = await claude_service.chat(message.message)
+        response = await claude_service.chat(message.message, on_text=on_text)
         return {
             "response": response,
             "context": message.context,
@@ -333,9 +140,9 @@ async def _chat(message: ChatMessage):
             "source": "ai",
         }
     except (APIError, httpx.HTTPError, IndexError, KeyError, TypeError) as error:
-        if getattr(error, "status_code", None) == 401:
-            raise HTTPException(status_code=502, detail="Claude API key is invalid or expired") from error
-        raise HTTPException(status_code=502, detail="Claude API request failed") from error
+        if getattr(error, "status_code", None) in {401, 403}:
+            raise HTTPException(status_code=502, detail="La clé API du fournisseur IA est invalide ou expirée") from error
+        raise HTTPException(status_code=502, detail="La requête au fournisseur IA a échoué") from error
 
 @router.get("/history")
 async def get_history(conversation_id: str | None = None, limit: int = 100):

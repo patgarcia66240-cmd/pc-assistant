@@ -1,0 +1,10 @@
+{
+  "id": "city_info",
+  "name": "Informations ville",
+  "version": "0.1.0",
+  "description": "Infos ville/département/région (population, code postal...) dans le chat, servies depuis services/city_info_service.py — extrait de routes/chat.py le 12/09/2026. Différent du plugin city_details (données lourdes optionnelles, sur demande explicite, pas de détection chat)",
+  "enabled_by_default": true,
+  "chat_handler": true,
+  "chat_handler_order": 20,
+  "chat_error_message": "City information service unavailable"
+}

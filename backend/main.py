@@ -12,9 +12,15 @@ from fastapi.middleware.gzip import GZipMiddleware
 import logging
 from db import init_db
 from config import settings
+from plugin_loader import load_plugins, get_lifecycle_hooks
 
-# Import routers
-from routes import chat, system, files, config, saints, city_details, calendar
+# Chat reste le seul routeur "métier" core : c'est lui qui appelle plugin_loader.get_chat_handlers()
+# pour le routage par intention (voir routes/chat.py). Tout le reste (saints, calendar,
+# city_details, kings, system, files, config) est passé en plugin le 11/09/2026 — voir
+# backend/plugins/*. "plugins" est le routeur de gestion des plugins eux-mêmes (liste,
+# activer/désactiver), forcément core lui aussi.
+from routes import chat
+from routes import plugins as plugins_route
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -26,9 +32,30 @@ async def lifespan(app: FastAPI):
     # Startup
     logger.info("Starting PC Assistant Backend")
     await init_db()
+    # Hooks de cycle de vie déclarés par des plugins (manifest "lifecycle": true, voir
+    # plugin_loader.get_lifecycle_hooks()) — ex. plugins/messaging/lifecycle.py, qui lance
+    # whatsapp-bridge/ et telegram_bot.py avec le backend. Récupérés une seule fois pour que
+    # les MÊMES objets hook servent au shutdown ci-dessous (un hook garde son état en mémoire
+    # entre les deux, ex. un subprocess.Popen). Un hook qui échoue est loggé, jamais fatal :
+    # une erreur dans un plugin ne doit pas empêcher le reste du backend de démarrer.
+    lifecycle_hooks = get_lifecycle_hooks()
+    for hook in lifecycle_hooks:
+        if hook["on_startup"] is None:
+            continue
+        try:
+            await hook["on_startup"]()
+        except Exception:
+            logger.exception("Plugin '%s' : échec de on_startup", hook["id"])
     yield
     # Shutdown
     logger.info("Shutting down PC Assistant Backend")
+    for hook in lifecycle_hooks:
+        if hook["on_shutdown"] is None:
+            continue
+        try:
+            await hook["on_shutdown"]()
+        except Exception:
+            logger.exception("Plugin '%s' : échec de on_shutdown", hook["id"])
 
 # Create FastAPI app
 app = FastAPI(
@@ -48,14 +75,14 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Include routers
+# Include core routers
 app.include_router(chat.router, prefix="/api/chat", tags=["chat"])
-app.include_router(system.router, prefix="/api/system", tags=["system"])
-app.include_router(files.router, prefix="/api/files", tags=["files"])
-app.include_router(config.router, prefix="/api/config", tags=["config"])
-app.include_router(saints.router, prefix="/api/saints", tags=["saints"])
-app.include_router(city_details.router, prefix="/api/city-details", tags=["city-details"])
-app.include_router(calendar.router, prefix="/api/calendar", tags=["calendar"])
+app.include_router(plugins_route.router, prefix="/api/plugins", tags=["plugins"])
+
+# Découvre et monte les plugins activés (backend/plugins/*) — un plugin désactivé via
+# POST /api/plugins/{id}/disable reste sur disque mais n'est pas monté tant que le backend
+# n'a pas redémarré (voir plugin_loader.py).
+load_plugins(app)
 
 @app.get("/")
 async def root():
@@ -91,4 +118,13 @@ if __name__ == "__main__":
         port=settings.API_PORT,
         reload=True,
         reload_dirs=[str(Path(__file__).resolve().parent)],
+        # reload_includes (ajouté le 12/09/2026) : limite la surveillance aux fichiers .py.
+        # Sans ça, uvicorn redémarre aussi sur toute écriture non-.py dans backend/ — déjà vu une
+        # fois avec les logs whatsapp-bridge/ (voir plugins/messaging/lifecycle.py, LOG_DIR).
+        # Coupable cette fois : backend/pc_assistant.db, réécrit à CHAQUE message traité (donc à
+        # chaque message WhatsApp reçu ET chaque réponse d'ARIA) -> reload -> le hook on_shutdown
+        # tue whatsapp-bridge/ -> on_startup le relance -> boucle de (re)connexion WhatsApp sans
+        # fin (codes 408/428/515 dans run-logs/whatsapp-bridge.log), jamais stable assez longtemps
+        # pour tenir une conversation.
+        reload_includes=["*.py"],
     )

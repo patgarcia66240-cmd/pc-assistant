@@ -19,5 +19,9 @@ dependencies = [
     "psutil>=5.9,<8",
     "aiofiles>=23.2,<26",
     "python-multipart>=0.0.6,<1",
+    "kokoro-onnx[gpu]>=0.6.1,<0.7",
+    "onnxruntime-gpu[cuda,cudnn]>=1.21,<2; sys_platform == 'win32'",
+    "piper-tts>=1.8,<2",
+    "soundfile>=0.13,<1",
     "tzdata>=2024.1; sys_platform == 'win32'",
 ]

@@ -1,0 +1,16 @@
+{
+  "id": "pointer_calibration",
+  "name": "Calibration du pointeur",
+  "version": "0.1.0",
+  "description": "Calibration en quatre points du curseur piloté par la main",
+  "enabled_by_default": true,
+  "frontend": {
+    "component": "PointerCalibration",
+    "tab": {
+      "id": "pointer-calibration",
+      "label": "Calibrage pointeur",
+      "icon": "pointer",
+      "order": 70
+    }
+  }
+}

@@ -1,5 +1,9 @@
 import { useState, useRef, useEffect } from 'react'
 import { SkeletonBlock } from './Skeleton'
+import ariaMark from '../assets/aria-mark.svg'
+import { QUIZ_NAVIGATE_EVENT } from '../quizNavigation'
+import { shuffleQuizQuestions } from '../quizUtils'
+import { navigateToPlugin } from '../pluginNavigation'
 
 // Remplace le spinner + "Récupération des informations..." pendant qu'ARIA prépare sa
 // réponse : quelques lignes de texte grisées d'une largeur irrégulière, pour suggérer une
@@ -19,6 +23,16 @@ function SendIcon() {
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" className="h-4 w-4" aria-hidden="true">
       <path d="m21 3-7.5 18-3.5-7-7-3.5L21 3Z" />
       <path d="M10 14 21 3" />
+    </svg>
+  )
+}
+
+function MicrophoneIcon({ active = false }) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" className="h-5 w-5" aria-hidden="true">
+      <rect x="9" y="3" width="6" height="11" rx="3" />
+      <path d="M5.5 11a6.5 6.5 0 0 0 13 0M12 17.5V21M8.5 21h7" />
+      {active && <circle cx="19" cy="5" r="2" className="fill-current stroke-none" />}
     </svg>
   )
 }
@@ -168,9 +182,8 @@ function LoadingIcon() {
   return <span className="inline-block h-4 w-4 animate-spin rounded-full border-2 border-gray-500 border-t-cyan-300" aria-hidden="true" />
 }
 
-// Avatar affiché à côté des messages d'ARIA (badge dégradé "A", identique à l'icône de l'app dans
-// l'en-tête de App.jsx pour une identité visuelle cohérente) ou d'un message d'erreur (icône
-// d'alerte distincte, pour ne plus confondre visuellement une erreur avec une réponse d'ARIA).
+// Avatar affiché à côté des messages d'ARIA ou d'un message d'erreur (icône d'alerte distincte,
+// pour ne plus confondre visuellement une erreur avec une réponse d'ARIA).
 // Masqué sur mobile (sm:flex) pour laisser le maximum de largeur aux bulles sur petit écran.
 function MessageAvatar({ sender }) {
   if (sender === 'error') {
@@ -183,11 +196,7 @@ function MessageAvatar({ sender }) {
       </span>
     )
   }
-  return (
-    <span className="mb-1 hidden h-7 w-7 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-blue-500 to-cyan-400 text-xs font-bold text-white shadow-sm shadow-blue-950/40 sm:flex" aria-hidden="true">
-      A
-    </span>
-  )
+  return <img src={ariaMark} alt="" className="mb-1 hidden h-7 w-7 shrink-0 rounded-full shadow-sm shadow-blue-950/40 sm:block" />
 }
 
 function ChatEmptyIcon() {
@@ -269,6 +278,8 @@ function sourceBadgeLabel(msg) {
       return 'Bourse'
     case 'king':
       return 'Rois de France'
+    case 'quiz':
+      return 'Quiz interactif'
     default:
       return 'API système'
   }
@@ -284,7 +295,186 @@ function sourceBadgeClass(msg) {
     return 'border-amber-700/60 bg-amber-950/40 text-amber-300'
   }
   if (msg.sourceType === 'king') return 'border-yellow-700/60 bg-yellow-950/40 text-yellow-300'
+  if (msg.sourceType === 'quiz') return 'border-fuchsia-700/60 bg-fuchsia-950/40 text-fuchsia-300'
   return 'border-emerald-700/60 bg-emerald-950/40 text-emerald-300'
+}
+
+function ChatQuizCard({ data }) {
+  const [questions, setQuestions] = useState(() => (
+    shuffleQuizQuestions(Array.isArray(data?.questions) ? data.questions : [])
+  ))
+  const [index, setIndex] = useState(0)
+  const [answer, setAnswer] = useState('')
+  const [score, setScore] = useState(0)
+  const [newSeriesLoading, setNewSeriesLoading] = useState(false)
+  const [newSeriesError, setNewSeriesError] = useState('')
+  const question = questions[index]
+  const finished = questions.length > 0 && index >= questions.length
+
+  useEffect(() => {
+    if (!answer) return undefined
+    const timeoutId = window.setTimeout(() => {
+      setIndex((current) => current + 1)
+      setAnswer('')
+    }, 2000)
+    return () => window.clearTimeout(timeoutId)
+  }, [answer])
+
+  function restart(nextQuestions) {
+    setQuestions(shuffleQuizQuestions(nextQuestions))
+    setIndex(0)
+    setAnswer('')
+    setScore(0)
+    setNewSeriesError('')
+  }
+
+  async function generateNewSeries() {
+    const firstQuestion = questions[0]
+    const config = data?.config || {
+      theme: firstQuestion.theme,
+      question_type: firstQuestion.choices.length === 2 ? 'true_false' : 'qcm',
+      difficulty: firstQuestion.difficulty,
+      count: questions.length,
+    }
+
+    setNewSeriesLoading(true)
+    setNewSeriesError('')
+    try {
+      const response = await fetch('/api/quiz/next', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(config),
+      })
+      const result = await response.json()
+      if (!response.ok) throw new Error(result.detail || 'Impossible de préparer une nouvelle série')
+      restart(result.questions)
+    } catch (error) {
+      setNewSeriesError(error.message)
+    } finally {
+      setNewSeriesLoading(false)
+    }
+  }
+
+  if (questions.length === 0) {
+    return <p className="text-sm text-red-300">Le quiz ne contient aucune question valide.</p>
+  }
+
+  if (finished) {
+    const percentage = Math.round((score / questions.length) * 100)
+    return (
+      <div className="min-w-[17rem] overflow-hidden rounded-2xl border border-fuchsia-500/30 bg-gradient-to-br from-fuchsia-950/50 via-gray-900 to-blue-950/40 shadow-xl sm:min-w-[30rem]">
+        <div className="p-6 text-center">
+          <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full border border-fuchsia-400/40 bg-fuchsia-500/15 text-2xl font-bold text-fuchsia-200">
+            {percentage}%
+          </div>
+          <h3 className="mt-4 text-xl font-semibold text-white">Quiz terminé</h3>
+          <p className="mt-1 text-gray-300">{score} bonne{score > 1 ? 's' : ''} réponse{score > 1 ? 's' : ''} sur {questions.length}</p>
+          <p className="mt-4 text-gray-300">Veux-tu faire une autre série&nbsp;?</p>
+          {newSeriesError && (
+            <p className="mt-3 rounded-lg border border-red-500/30 bg-red-950/30 p-3 text-sm text-red-300">
+              {newSeriesError}
+            </p>
+          )}
+          <div className="mt-5 flex flex-wrap justify-center gap-3">
+            <button
+              type="button"
+              onClick={generateNewSeries}
+              disabled={newSeriesLoading}
+              className="rounded-lg bg-fuchsia-600 px-4 py-2 font-semibold text-white hover:bg-fuchsia-500 disabled:opacity-50"
+            >
+              {newSeriesLoading ? 'Recherche d’une série…' : 'Oui, nouvelle série'}
+            </button>
+            <button
+              type="button"
+              onClick={() => restart(questions)}
+              disabled={newSeriesLoading}
+              className="rounded-lg border border-fuchsia-500/50 px-4 py-2 font-semibold text-fuchsia-200 hover:bg-fuchsia-500/10 disabled:opacity-50"
+            >
+              Rejouer cette série
+            </button>
+            <button
+              type="button"
+              onClick={() => window.dispatchEvent(new Event(QUIZ_NAVIGATE_EVENT))}
+              disabled={newSeriesLoading}
+              className="rounded-lg border border-gray-600 px-4 py-2 text-gray-200 hover:bg-gray-700 disabled:opacity-50"
+            >
+              Ouvrir les quiz
+            </button>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  const isCorrect = answer === question.correct_answer
+  return (
+    <div className="min-w-[17rem] overflow-hidden rounded-2xl border border-fuchsia-500/30 bg-gradient-to-br from-fuchsia-950/45 via-gray-900 to-blue-950/40 shadow-xl sm:min-w-[30rem]">
+      <div className="border-b border-white/10 bg-white/[0.03] px-5 py-4">
+        <div className="flex items-center justify-between gap-3">
+          <div>
+            <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-fuchsia-300">
+              {question.theme} · {question.difficulty}
+            </p>
+            <p className="mt-1 text-xs text-gray-400">Question {index + 1} sur {questions.length}</p>
+          </div>
+          <span className="rounded-full border border-fuchsia-500/30 bg-fuchsia-500/10 px-3 py-1 text-xs text-fuchsia-200">
+            Score {score}
+          </span>
+        </div>
+        <div className="mt-3 h-1.5 overflow-hidden rounded-full bg-gray-700">
+          <div
+            className="h-full rounded-full bg-gradient-to-r from-fuchsia-500 to-blue-500 transition-all"
+            style={{ width: `${((index + 1) / questions.length) * 100}%` }}
+          />
+        </div>
+      </div>
+
+      <div className="p-5">
+        <h3 className="text-base font-semibold leading-7 text-white">{question.question}</h3>
+        <div className="mt-4 grid gap-2 sm:grid-cols-2">
+          {question.choices.map((choice, choiceIndex) => {
+            const correctChoice = answer && choice === question.correct_answer
+            const wrongChoice = answer === choice && !correctChoice
+            return (
+              <button
+                key={choice}
+                type="button"
+                disabled={Boolean(answer)}
+                onClick={() => {
+                  setAnswer(choice)
+                  if (choice === question.correct_answer) setScore((current) => current + 1)
+                }}
+                className={`flex min-h-[54px] items-center gap-3 rounded-xl border px-3 py-2.5 text-left transition ${
+                  correctChoice
+                    ? 'border-emerald-400/70 bg-emerald-500/15 text-emerald-100'
+                    : wrongChoice
+                      ? 'border-red-400/70 bg-red-500/15 text-red-100'
+                      : 'border-gray-600/80 bg-gray-800/70 text-gray-200 hover:border-fuchsia-400 hover:bg-fuchsia-500/10 disabled:opacity-70'
+                }`}
+              >
+                <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full border border-current/30 text-xs font-bold">
+                  {String.fromCharCode(65 + choiceIndex)}
+                </span>
+                <span>{choice}</span>
+              </button>
+            )
+          })}
+        </div>
+
+        {answer && (
+          <div className={`mt-4 rounded-xl border p-3 ${isCorrect ? 'border-emerald-500/30 bg-emerald-950/30' : 'border-red-500/30 bg-red-950/30'}`}>
+            <p className={`font-semibold ${isCorrect ? 'text-emerald-300' : 'text-red-300'}`}>
+              {isCorrect ? 'Bonne réponse !' : `Bonne réponse : ${question.correct_answer}`}
+            </p>
+            {question.explanation && <p className="mt-1 text-sm leading-5 text-gray-300">{question.explanation}</p>}
+            <p className="mt-3 inline-flex min-h-[40px] items-center rounded-lg bg-gradient-to-r from-fuchsia-600/60 to-blue-600/60 px-4 py-2 font-semibold text-white">
+              {index + 1 === questions.length ? 'Score dans 2 secondes…' : 'Question suivante dans 2 secondes…'}
+            </p>
+          </div>
+        )}
+      </div>
+    </div>
+  )
 }
 
 function getBrowserLocation() {
@@ -322,10 +512,18 @@ export default function ChatComponent() {
   const [messages, setMessages] = useState(loadStoredMessages)
   const [input, setInput] = useState('')
   const [loading, setLoading] = useState(false)
+  const [isListening, setIsListening] = useState(false)
+  const [speechError, setSpeechError] = useState('')
   const [confirmClearOpen, setConfirmClearOpen] = useState(false)
   const messagesEndRef = useRef(null)
   const sentMessagesRef = useRef([])
   const historyIndexRef = useRef(-1)
+  const recognitionRef = useRef(null)
+  const speechBaseTextRef = useRef('')
+
+  useEffect(() => () => {
+    recognitionRef.current?.stop()
+  }, [])
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
@@ -395,6 +593,7 @@ export default function ChatComponent() {
       if (!response.ok) {
         throw new Error(data.detail || `Chat request failed (${response.status})`)
       }
+      if (data.data?.navigate_to) navigateToPlugin(data.data.navigate_to)
       const responseMessage = { id: pendingId || `response-${Date.now()}`, text: data.response, data: data.data, timeData: data.time_data, timeLabel: data.time_label, sender: 'aria', source: data.source || 'ai', sourceType: data.source_type, weatherType: data.weather_type }
       setMessages(prev => pendingId
         ? prev.map((message) => message.id === pendingId ? responseMessage : message)
@@ -408,6 +607,50 @@ export default function ChatComponent() {
     } finally {
       setLoading(false)
     }
+  }
+
+  const toggleVoiceInput = () => {
+      if (isListening) {
+        recognitionRef.current?.stop()
+        return
+      }
+
+      const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition
+      if (!SpeechRecognition) {
+        setSpeechError('La dictée vocale n’est pas prise en charge par ce navigateur.')
+        return
+      }
+
+      setSpeechError('')
+      speechBaseTextRef.current = input.trim()
+      const recognition = new SpeechRecognition()
+      recognition.lang = 'fr-FR'
+      recognition.continuous = true
+      recognition.interimResults = true
+      recognition.onstart = () => setIsListening(true)
+      recognition.onresult = (event) => {
+        const transcript = Array.from(event.results)
+          .map((result) => result[0].transcript)
+          .join('')
+          .trim()
+        setInput([speechBaseTextRef.current, transcript].filter(Boolean).join(' '))
+      }
+      recognition.onerror = (event) => {
+        if (event.error !== 'aborted') {
+          setSpeechError(
+            event.error === 'not-allowed'
+              ? 'Autorise l’accès au micro pour utiliser la dictée vocale.'
+              : 'Impossible d’utiliser le micro. Réessaie.',
+          )
+        }
+        setIsListening(false)
+      }
+      recognition.onend = () => {
+        recognitionRef.current = null
+        setIsListening(false)
+      }
+      recognitionRef.current = recognition
+      recognition.start()
   }
 
   const handleInputKeyDown = (event) => {
@@ -592,6 +835,8 @@ export default function ChatComponent() {
                 <QuoteCard quote={msg.data} fallbackText={msg.text} note="EODHD · clôture de fin de journée, pas temps réel." />
               ) : msg.sourceType === 'commodities' && msg.data ? (
                 <QuoteCard quote={msg.data} fallbackText={msg.text} note="Twelve Data · métaux précieux." />
+              ) : msg.sourceType === 'quiz' && msg.data ? (
+                <ChatQuizCard data={msg.data} />
               ) : msg.sourceType === 'king' && Array.isArray(msg.data) ? (
                 <KingsTimeline kings={msg.data} onSelectKing={(king) => handleSend(`roi ${kingBaseName(king.name)}`)} />
               ) : msg.sourceType === 'king' && msg.data ? (
@@ -611,30 +856,47 @@ export default function ChatComponent() {
       </div>
 
       <form
-        className="sticky bottom-0 mt-3 flex shrink-0 gap-2 border-t border-gray-800 bg-gray-900 pt-3"
+        className="sticky bottom-0 mt-3 shrink-0 border-t border-gray-800 bg-gray-900 pt-3"
         onSubmit={(event) => {
           event.preventDefault()
           handleSend()
         }}
       >
-        <input
-          type="text"
-          value={input}
-          onChange={(e) => setInput(e.target.value)}
-          onKeyDown={handleInputKeyDown}
-          title="Flèche haut/bas : parcourir les messages envoyés"
-          className="min-w-0 flex-1 rounded-xl border border-gray-700 bg-gray-800 px-4 py-3 text-sm text-white outline-none transition placeholder:text-gray-500 focus:border-blue-500"
-          placeholder="Écrire un message..."
-          disabled={loading}
-        />
-        <button
-          type="submit"
-          disabled={loading}
-          className="inline-flex min-h-[44px] shrink-0 items-center justify-center gap-2 rounded-xl bg-gradient-to-br from-blue-600 to-cyan-500 px-4 text-sm font-semibold text-white shadow-md shadow-blue-950/30 transition hover:from-blue-500 hover:to-cyan-400 disabled:cursor-not-allowed disabled:opacity-50 disabled:shadow-none sm:px-6"
-        >
-          {!loading && <SendIcon />}
-          {loading ? 'Envoi...' : 'Envoyer'}
-        </button>
+        <div className="flex gap-2">
+          <input
+            type="text"
+            value={input}
+            onChange={(e) => setInput(e.target.value)}
+            onKeyDown={handleInputKeyDown}
+            title="Flèche haut/bas : parcourir les messages envoyés"
+            className="min-w-0 flex-1 rounded-xl border border-gray-700 bg-gray-800 px-4 py-3 text-sm text-white outline-none transition placeholder:text-gray-500 focus:border-blue-500"
+            placeholder={isListening ? 'Je vous écoute...' : 'Écrire un message...'}
+            disabled={loading}
+          />
+          <button
+            type="button"
+            onClick={toggleVoiceInput}
+            disabled={loading}
+            aria-label={isListening ? 'Arrêter la dictée vocale' : 'Parler au micro'}
+            title={isListening ? 'Arrêter la dictée' : 'Parler au micro'}
+            className={`inline-flex min-h-[44px] min-w-[44px] shrink-0 items-center justify-center rounded-xl border transition ${
+              isListening
+                ? 'border-red-400/70 bg-red-500/20 text-red-300 shadow-sm shadow-red-950/30'
+                : 'border-gray-700 bg-gray-800 text-gray-300 hover:border-cyan-500 hover:text-cyan-300'
+            } disabled:cursor-not-allowed disabled:opacity-50`}
+          >
+            <MicrophoneIcon active={isListening} />
+          </button>
+          <button
+            type="submit"
+            disabled={loading}
+            className="inline-flex min-h-[44px] shrink-0 items-center justify-center gap-2 rounded-xl bg-gradient-to-br from-blue-600 to-cyan-500 px-4 text-sm font-semibold text-white shadow-md shadow-blue-950/30 transition hover:from-blue-500 hover:to-cyan-400 disabled:cursor-not-allowed disabled:opacity-50 disabled:shadow-none sm:px-6"
+          >
+            {!loading && <SendIcon />}
+            {loading ? 'Envoi...' : 'Envoyer'}
+          </button>
+        </div>
+        {speechError && <p className="mt-2 text-xs text-red-300" role="status">{speechError}</p>}
       </form>
     </section>
   )

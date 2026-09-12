@@ -7,6 +7,8 @@ from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 import httpx
 import psutil
 
+from config import settings
+
 FRENCH_WEEKDAYS = (
     "lundi", "mardi", "mercredi", "jeudi", "vendredi", "samedi", "dimanche"
 )
@@ -99,7 +101,7 @@ COUNTRY_ALIASES.update({
 
 
 def country_code(value: str) -> str | None:
-    normalized = normalize_text(value.strip())
+    normalized = normalize_text(value.strip()).replace("-", " ")
     if normalized in COUNTRY_ALIASES:
         return COUNTRY_ALIASES[normalized]
     if len(normalized) == 2 and normalized.isalpha():
@@ -117,10 +119,22 @@ async def get_time_answer(message: str = "", location: dict | None = None) -> st
             comparison_candidate = candidate.replace("-", " ")
             if comparison_candidate not in {"actuelle", "est il", "du jour"} and not comparison_candidate.startswith("est il"):
                 city = candidate
+    # Ni ville précisée dans le message, ni position du navigateur transmise (context.location,
+    # voir getBrowserLocation() dans VoiceAssistant.jsx — renvoie null si la géolocalisation est
+    # refusée ou indisponible) : on utilise la localisation enregistrée dans Paramètres (Pays/Ville,
+    # voir AppSettingsModal.jsx et backend/plugins/config/router.py) au lieu de renvoyer Paris/France
+    # en dur. C'était le bug signalé : la réponse restait "Heure en France" (Paris) quelle que soit
+    # la ville choisie dans les paramètres, dès que la géolocalisation navigateur n'était pas
+    # disponible — ce qui est le cas la plupart du temps.
+    using_saved_location = not city and not location
     timezone_name = "Europe/Paris"
-    reference = "France"
-    latitude = location.get("latitude", 48.8566) if location else 48.8566
-    longitude = location.get("longitude", 2.3522) if location else 2.3522
+    reference = settings.USER_CITY_LABEL if using_saved_location else "France"
+    if location:
+        latitude = location.get("latitude", settings.USER_LATITUDE)
+        longitude = location.get("longitude", settings.USER_LONGITUDE)
+    else:
+        latitude = settings.USER_LATITUDE
+        longitude = settings.USER_LONGITUDE
 
     async with httpx.AsyncClient(timeout=8) as client:
         if city:
@@ -147,7 +161,7 @@ async def get_time_answer(message: str = "", location: dict | None = None) -> st
                 longitude = place["longitude"]
             except (httpx.HTTPError, KeyError, IndexError, TypeError):
                 reference = city.title()
-        elif location:
+        elif location or using_saved_location:
             try:
                 timezone_response = await client.get(
                     "https://api.open-meteo.com/v1/forecast",
@@ -155,7 +169,9 @@ async def get_time_answer(message: str = "", location: dict | None = None) -> st
                 )
                 timezone_response.raise_for_status()
                 timezone_name = timezone_response.json().get("timezone") or timezone_name
-                reference = "votre position"
+                # "votre position" seulement pour une vraie position GPS du navigateur — pour le
+                # repli sur la localisation enregistrée, on garde le nom de ville (plus parlant).
+                reference = "votre position" if location else settings.USER_CITY_LABEL
             except (httpx.HTTPError, KeyError, TypeError):
                 pass
 
@@ -175,7 +191,11 @@ async def get_time_answer(message: str = "", location: dict | None = None) -> st
         f"{FRENCH_WEEKDAYS[now.weekday()]} {now.day} "
         f"{FRENCH_MONTHS[now.month - 1]} {now.year}"
     )
-    reference = reference if city or location else "France"
+    # `reference` est déjà correctement défini par les branches ci-dessus dans les trois cas
+    # possibles (ville trouvée, position navigateur, ou repli sur la localisation enregistrée) —
+    # `using_saved_location` couvre exactement le complément de `city or location`, donc il n'y a
+    # plus de cas résiduel qui devrait retomber sur "France" ici (contrairement à avant, où ce repli
+    # écrasait silencieusement le nom de ville enregistré).
 
     try:
         async with httpx.AsyncClient(timeout=8) as client:
@@ -321,12 +341,18 @@ async def get_weather_answer(message: str, location: dict | None = None) -> dict
     coordinates = None
     if not city and location and "latitude" in location and "longitude" in location:
         coordinates = (location["latitude"], location["longitude"])
-    if not city and coordinates is None:
-        return {"text": "Précisez une ville, par exemple : météo de Paris.", "weather_type": None}
+    # Ni ville dans le message, ni position du navigateur transmise : on utilise la localisation
+    # enregistrée dans Paramètres (Pays/Ville) au lieu de demander de préciser une ville — c'était
+    # le bug signalé, symétrique à celui de get_time_answer ci-dessus.
+    using_saved_location = not city and coordinates is None
+    place_name = None
+    if using_saved_location:
+        coordinates = (settings.USER_LATITUDE, settings.USER_LONGITUDE)
+        place_name = settings.USER_CITY_LABEL
 
     async with httpx.AsyncClient(timeout=8) as client:
-        place = {"name": "votre position"}
-        if coordinates is None:
+        place = {"name": place_name or "votre position"}
+        if city:
             geocoding = await client.get(
                 "https://geocoding-api.open-meteo.com/v1/search",
                 params={"name": geocoding_city_name(city), "count": 1, "language": "fr", "format": "json"},
@@ -337,7 +363,7 @@ async def get_weather_answer(message: str, location: dict | None = None) -> dict
                 return {"text": f"Je ne trouve pas la ville {city}.", "weather_type": None}
             place = places[0]
             coordinates = (place["latitude"], place["longitude"])
-        else:
+        elif not using_saved_location:
             try:
                 reverse_geocoding = await client.get(
                     "https://api.bigdatacloud.net/data/reverse-geocode-client",
@@ -373,8 +399,8 @@ async def get_weather_answer(message: str, location: dict | None = None) -> dict
         return {
             "text": (
                 f"Météo à {place['name']} : {weather_description(weather_code)}, "
-                f"{current['temperature_2m']} °C, "
-                f"vent {current['wind_speed_10m']} km/h."
+                f"{current['temperature_2m']:.0f} °C, "
+                f"vent {current['wind_speed_10m']:.0f} km/h."
             ),
             "weather_type": weather_icon_type(weather_code),
         }

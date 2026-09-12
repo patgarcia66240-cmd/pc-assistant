@@ -1,0 +1,8 @@
+{
+  "id": "city_details",
+  "name": "Détails ville",
+  "version": "0.1.0",
+  "description": "Données complémentaires ville (prix immobilier, coût de la vie), sur demande — pas de tab, utilisé en interne",
+  "router_prefix": "/api/city-details",
+  "enabled_by_default": true
+}

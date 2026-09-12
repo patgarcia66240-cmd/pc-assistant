@@ -1,1 +1,30 @@
 /* App styles */
+
+.hand-pointer-active,
+.hand-pointer-active * {
+  cursor: none !important;
+}
+
+.hand-pointer-hover {
+  color: white !important;
+  background-color: rgb(55 65 81) !important;
+  box-shadow: 0 0 0 2px rgb(96 165 250 / 75%), 0 0 18px rgb(59 130 246 / 35%);
+  transform: translateX(3px);
+}
+
+.hand-pointer-hover[aria-current='page'] {
+  background-color: rgb(37 99 235) !important;
+}
+
+.hand-pointer-dwell {
+  animation: hand-pointer-dwell-progress 1s linear forwards;
+}
+
+@keyframes hand-pointer-dwell-progress {
+  from {
+    box-shadow: 0 0 0 2px rgb(96 165 250 / 75%), 0 0 18px rgb(59 130 246 / 35%);
+  }
+  to {
+    box-shadow: 0 0 0 4px rgb(52 211 153 / 95%), 0 0 28px rgb(16 185 129 / 75%);
+  }
+}

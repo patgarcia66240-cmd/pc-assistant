@@ -1,0 +1,17 @@
+{
+  "id": "files",
+  "name": "Fichiers",
+  "version": "0.1.0",
+  "description": "Navigateur de fichiers et upload (dans FILES_ROOT)",
+  "router_prefix": "/api/files",
+  "enabled_by_default": true,
+  "frontend": {
+    "component": "FileManager",
+    "tab": {
+      "id": "files",
+      "label": "Fichiers",
+      "icon": "files",
+      "order": 60
+    }
+  }
+}

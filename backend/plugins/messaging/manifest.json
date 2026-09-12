@@ -1,0 +1,21 @@
+{
+  "id": "messaging",
+  "name": "Messagerie",
+  "version": "0.4.0",
+  "description": "Onglet de suivi ET de configuration pour les ponts de messagerie externes (WhatsApp, Telegram) : lit GET /api/whatsapp/status et GET /api/telegram/status, expose son propre routeur (/api/messaging) pour saisir/activer leurs identifiants sans toucher à .env à la main, les lance/arrête automatiquement avec le backend (voir lifecycle.py), et permet de les piloter en langage naturel depuis les onglets Chat/Vocal (voir chat_handler.py : envoyer un message, consulter l'historique) — volontairement toujours actif, indépendamment de whatsapp/telegram",
+  "router_prefix": "/api/messaging",
+  "enabled_by_default": true,
+  "lifecycle": true,
+  "chat_handler": true,
+  "chat_handler_order": 60,
+  "chat_error_message": "Messaging service unavailable",
+  "frontend": {
+    "component": "Messaging",
+    "tab": {
+      "id": "messaging",
+      "label": "Messagerie",
+      "icon": "message",
+      "order": 90
+    }
+  }
+}

@@ -1,15 +1,5 @@
-"""System monitoring routes"""
-from fastapi import APIRouter
-from services.system_service import system_service
-
-router = APIRouter()
-
-@router.get("/info")
-async def get_system_info():
-    """Get system information"""
-    return system_service.get_system_info()
-
-@router.get("/processes")
-async def get_processes():
-    """Get running processes."""
-    return {"processes": system_service.get_processes()}
+# Ce fichier a été déplacé vers backend/plugins/system/router.py le 11/09/2026, dans le
+# système de plugins ARIA (voir backend/plugin_loader.py). Il n'est plus importé par main.py.
+# Conservé ici volontairement vide (plutôt que supprimé) pour que l'ancien chemin d'import
+# échoue bruyamment s'il traîne encore quelque part, au lieu de faire tourner silencieusement
+# deux copies de la même route.

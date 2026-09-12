@@ -1,0 +1,8 @@
+{
+  "id": "telegram",
+  "name": "Telegram",
+  "version": "0.1.0",
+  "description": "Pont avec un bot Telegram (backend/telegram_bot.py, API officielle et gratuite) : reçoit les messages d'utilisateurs autorisés et fait répondre ARIA",
+  "router_prefix": "/api/telegram",
+  "enabled_by_default": false
+}

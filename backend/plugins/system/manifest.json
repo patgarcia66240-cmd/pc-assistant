@@ -1,0 +1,17 @@
+{
+  "id": "system",
+  "name": "Système",
+  "version": "0.1.0",
+  "description": "Monitoring système : CPU/RAM/disque, processus",
+  "router_prefix": "/api/system",
+  "enabled_by_default": true,
+  "frontend": {
+    "component": "SystemMonitor",
+    "tab": {
+      "id": "system",
+      "label": "Système",
+      "icon": "system",
+      "order": 50
+    }
+  }
+}

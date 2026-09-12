@@ -1,0 +1,10 @@
+{
+  "id": "heure_meteo",
+  "name": "Heure et météo",
+  "version": "0.1.0",
+  "description": "Heure (locale, ville précisée, ou capitales du G7) et météo, servies depuis services/local_service.py — extrait de routes/chat.py le 12/09/2026",
+  "enabled_by_default": true,
+  "chat_handler": true,
+  "chat_handler_order": 30,
+  "chat_error_message": "Time/weather service unavailable"
+}

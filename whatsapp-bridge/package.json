@@ -1,0 +1,21 @@
+{
+  "name": "aria-whatsapp-bridge",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Pont local entre ARIA et WhatsApp (Baileys, bibliothèque non officielle) : authentification par QR code une seule fois, puis relaie messages WhatsApp <-> backend ARIA (backend/plugins/whatsapp/).",
+  "type": "module",
+  "main": "index.js",
+  "engines": {
+    "node": ">=18"
+  },
+  "scripts": {
+    "start": "node index.js"
+  },
+  "dependencies": {
+    "@whiskeysockets/baileys": "^6.7.24",
+    "dotenv": "^17.4.2",
+    "pino": "^10.3.1",
+    "qrcode": "^1.5.3",
+    "qrcode-terminal": "^0.12.0"
+  }
+}

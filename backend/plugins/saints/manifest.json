@@ -1,0 +1,17 @@
+{
+  "id": "saints",
+  "name": "Saint du jour",
+  "version": "0.1.0",
+  "description": "Saint du jour, éphémérides (naissances célèbres, événements) et météo du jour",
+  "router_prefix": "/api/saints",
+  "enabled_by_default": true,
+  "frontend": {
+    "component": "SaintOfDay",
+    "tab": {
+      "id": "saint",
+      "label": "Saint du jour",
+      "icon": "saint",
+      "order": 40
+    }
+  }
+}

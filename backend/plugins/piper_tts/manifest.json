@@ -1,0 +1,8 @@
+{
+  "id": "piper_tts",
+  "name": "Voix rapide Piper",
+  "version": "0.1.0",
+  "description": "Synthèse vocale française locale et rapide avec Piper",
+  "router_prefix": "/api/piper-tts",
+  "enabled_by_default": true
+}

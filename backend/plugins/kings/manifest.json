@@ -1,0 +1,10 @@
+{
+  "id": "kings",
+  "name": "Rois de France",
+  "version": "0.1.0",
+  "description": "Fiches des rois de France, servies depuis SQLite (data/kings.db) — jamais par l'IA générative",
+  "enabled_by_default": true,
+  "chat_handler": true,
+  "chat_handler_order": 100,
+  "chat_error_message": "Kings database service unavailable"
+}

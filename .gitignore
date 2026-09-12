@@ -49,6 +49,17 @@ Cargo.lock
 # Tokens OAuth Google Agenda (mêmes secrets qu'un .env, ne doivent jamais être commit)
 backend/google_calendar_token.json
 
+# Modèles vocaux Kokoro téléchargés localement
+backend/data/tts/*.onnx
+backend/data/tts/*.bin
+backend/data/tts/*.onnx.json
+
+# Préférences locales d'activation des plugins
+backend/data/plugins_state.json
+
 # Database
 *.db
 *.sqlite
+
+# Session WhatsApp (pont Node.js, whatsapp-bridge/) — credentials de l'appareil lié, jamais commit
+whatsapp-bridge/auth/

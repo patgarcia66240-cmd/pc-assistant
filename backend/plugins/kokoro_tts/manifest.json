@@ -1,0 +1,8 @@
+{
+  "id": "kokoro_tts",
+  "name": "Voix naturelle Kokoro",
+  "version": "0.1.0",
+  "description": "Synthèse vocale française locale avec Kokoro ONNX et la voix ff_siwis",
+  "router_prefix": "/api/tts",
+  "enabled_by_default": true
+}

@@ -1,4 +1,6 @@
 """API endpoint tests"""
+import json
+
 import pytest
 from fastapi.testclient import TestClient
 from main import app
@@ -22,6 +24,47 @@ def test_chat_without_claude(monkeypatch):
     response = client.post("/api/chat/", json={"message": "Hello"})
     assert response.status_code == 503
 
+def test_chat_stream_emits_text_as_it_arrives(monkeypatch):
+    from config import settings
+    from services.claude_service import claude_service
+
+    class FakeMessageStream:
+        async def __aenter__(self):
+            return self
+
+        async def __aexit__(self, exc_type, exc_value, traceback):
+            pass
+
+        @property
+        def text_stream(self):
+            async def chunks():
+                for text in ("Bonjour", " depuis", " ARIA."):
+                    yield text
+
+            return chunks()
+
+    class FakeMessages:
+        def stream(self, **kwargs):
+            return FakeMessageStream()
+
+    class FakeClient:
+        messages = FakeMessages()
+
+    monkeypatch.setattr(settings, "AI_PROVIDER", "anthropic")
+    monkeypatch.setattr(claude_service, "client", FakeClient())
+
+    with client.stream("POST", "/api/chat/stream", json={"message": "Présente-toi"}) as response:
+        events = [json.loads(line) for line in response.iter_lines()]
+
+    assert response.status_code == 200
+    assert [event["text"] for event in events if event["type"] == "delta"] == [
+        "Bonjour",
+        " depuis",
+        " ARIA.",
+    ]
+    assert events[-1]["type"] == "done"
+    assert events[-1]["data"]["response"] == "Bonjour depuis ARIA."
+
 def test_chat_ram_does_not_require_claude(monkeypatch):
     from services.claude_service import claude_service
     monkeypatch.setattr(claude_service, "client", None)
@@ -40,6 +83,17 @@ def test_chat_time_does_not_require_claude(monkeypatch):
     assert "Heure en France" in response.json()["response"]
     assert "UTC" in response.json()["response"]
     assert "heure d'" in response.json()["response"]
+
+
+def test_chat_opens_whatsapp_plugin_without_claude(monkeypatch):
+    from services.claude_service import claude_service
+
+    monkeypatch.setattr(claude_service, "client", None)
+    response = client.post("/api/chat/", json={"message": "WhatsApp"})
+
+    assert response.status_code == 200
+    assert response.json()["source_type"] == "whatsapp_open"
+    assert response.json()["data"]["navigate_to"] == "whatsapp"
 
 def test_chat_give_time_does_not_require_claude(monkeypatch):
     from services.claude_service import claude_service
@@ -71,6 +125,7 @@ def test_country_aliases():
     assert country_code("bg") == "BG"
     assert country_code("Belgique") == "BE"
     assert country_code("Allemagne") == "DE"
+    assert country_code("Royaume-Uni") == "GB"
 
 def test_world_time_g7_does_not_require_claude(monkeypatch):
     from services.claude_service import claude_service
@@ -146,6 +201,49 @@ def test_weather_description():
     assert weather_description(0) == "ciel dégagé"
     assert weather_description(63) == "pluie"
 
+def test_weather_message_rounds_measurements(monkeypatch):
+    import asyncio
+    from services import local_service
+
+    class FakeResponse:
+        def __init__(self, payload):
+            self.payload = payload
+
+        def raise_for_status(self):
+            pass
+
+        def json(self):
+            return self.payload
+
+    class FakeAsyncClient:
+        def __init__(self, **kwargs):
+            pass
+
+        async def __aenter__(self):
+            return self
+
+        async def __aexit__(self, exc_type, exc_value, traceback):
+            pass
+
+        async def get(self, url, **kwargs):
+            if "reverse-geocode" in url:
+                return FakeResponse({"city": "Paris"})
+            return FakeResponse({
+                "current": {
+                    "temperature_2m": 18.6,
+                    "weather_code": 0,
+                    "wind_speed_10m": 12.4,
+                }
+            })
+
+    monkeypatch.setattr(local_service.httpx, "AsyncClient", FakeAsyncClient)
+    result = asyncio.run(local_service.get_weather_answer(
+        "météo",
+        {"latitude": 48.8566, "longitude": 2.3522},
+    ))
+
+    assert result["text"] == "Météo à Paris : ciel dégagé, 19 °C, vent 12 km/h."
+
 def test_saint_of_day():
     from datetime import date
     from services.saint_service import get_saint_of_day
@@ -162,13 +260,74 @@ def test_system_info():
     assert "drives" in response.json()
     assert isinstance(response.json()["drives"], list)
 
-def test_aria_config_round_trip():
+def test_aria_config_round_trip(monkeypatch):
+    from config import settings
+    from plugins.config import router as config_router
+
+    original = (settings.ARIA_NAME, settings.ARIA_AVATAR, settings.ARIA_LANGUAGE)
+    monkeypatch.setattr(config_router, "write_env_value", lambda *_args, **_kwargs: None)
+    try:
+        response = client.put(
+            "/api/config/aria",
+            json={"name": "Test ARIA", "avatar": "X", "language": "fr"},
+        )
+        assert response.status_code == 200
+        assert client.get("/api/config/aria").json() == {
+            "name": "Test ARIA",
+            "avatar": "X",
+            "language": "fr",
+        }
+        rejected = client.put(
+            "/api/config/aria",
+            json={"name": "Test ARIA", "avatar": "X", "language": "en"},
+        )
+        assert rejected.status_code == 422
+    finally:
+        settings.ARIA_NAME, settings.ARIA_AVATAR, settings.ARIA_LANGUAGE = original
+
+def test_app_preferences_round_trip(monkeypatch):
+    from config import settings
+    from plugins.config import router as config_router
+
+    async def fake_geocode(city, country):
+        assert city == "Lyon"
+        assert country == "France"
+        return {"name": "Lyon", "latitude": 45.764, "longitude": 4.8357}
+
+    monkeypatch.setattr(config_router, "_geocode_location", fake_geocode)
+    monkeypatch.setattr(config_router, "write_env_value", lambda key, value: None)
+    monkeypatch.setattr(settings, "USER_COUNTRY", settings.USER_COUNTRY)
+    monkeypatch.setattr(settings, "USER_CITY_LABEL", settings.USER_CITY_LABEL)
+    monkeypatch.setattr(settings, "USER_LATITUDE", settings.USER_LATITUDE)
+    monkeypatch.setattr(settings, "USER_LONGITUDE", settings.USER_LONGITUDE)
+    monkeypatch.setattr(settings, "AI_PROVIDER", settings.AI_PROVIDER)
+    monkeypatch.setattr(settings, "CLAUDE_MODEL", settings.CLAUDE_MODEL)
+
     response = client.put(
-        "/api/config/aria",
-        json={"name": "Test ARIA", "avatar": "X", "language": "en"},
+        "/api/config/preferences",
+        json={
+            "country": "France",
+            "city": "Lyon",
+            "ai_provider": "anthropic",
+            "ai_model": "claude-test-model",
+        },
     )
+
     assert response.status_code == 200
-    assert client.get("/api/config/aria").json()["name"] == "Test ARIA"
+    preferences = client.get("/api/config/preferences").json()
+    assert {
+        key: preferences[key]
+        for key in ("country", "city", "ai_provider", "ai_model")
+    } == {
+        "country": "France",
+        "city": "Lyon",
+        "ai_provider": "anthropic",
+        "ai_model": "claude-test-model",
+    }
+    assert preferences["ai_api_key"] == ""
+    assert "openai" in preferences["ai_providers"]
+    assert "gemini" in preferences["ai_providers"]
+    assert "qwen" in preferences["ai_providers"]
 
 def test_upload_is_scoped_to_files_root(monkeypatch, tmp_path):
     monkeypatch.setattr(FileService, "root", tmp_path)
@@ -178,3 +337,121 @@ def test_upload_is_scoped_to_files_root(monkeypatch, tmp_path):
     )
     assert response.status_code == 200
     assert (tmp_path / "note.txt").read_bytes() == b"hello"
+
+def test_kokoro_status():
+    response = client.get("/api/tts/status")
+    assert response.status_code == 200
+    assert {"available", "dependencies_installed", "model_installed", "voice", "provider"} <= response.json().keys()
+
+def test_kokoro_warmup(monkeypatch):
+    from services import kokoro_tts_service
+
+    monkeypatch.setattr(
+        kokoro_tts_service,
+        "status",
+        lambda: {
+            "available": True,
+            "dependencies_installed": True,
+            "model_installed": True,
+            "voice": "ff_siwis",
+        },
+    )
+    warmed_up = []
+    monkeypatch.setattr(kokoro_tts_service, "warm_up", lambda: warmed_up.append(True))
+
+    response = client.post("/api/tts/warmup")
+
+    assert response.status_code == 200
+    assert response.json() == {"ready": True}
+    assert warmed_up == [True]
+
+def test_kokoro_is_preloaded_during_startup(monkeypatch):
+    from services import kokoro_tts_service
+
+    monkeypatch.setattr(
+        kokoro_tts_service,
+        "status",
+        lambda: {"available": True, "provider": "CUDAExecutionProvider"},
+    )
+    warmed_up = []
+    monkeypatch.setattr(kokoro_tts_service, "warm_up", lambda: warmed_up.append(True))
+
+    with TestClient(app):
+        pass
+
+    assert warmed_up == [True]
+
+def test_kokoro_synthesize_returns_wav(monkeypatch):
+    from services import kokoro_tts_service
+
+    monkeypatch.setattr(
+        kokoro_tts_service,
+        "status",
+        lambda: {
+            "available": True,
+            "dependencies_installed": True,
+            "model_installed": True,
+            "voice": "ff_siwis",
+        },
+    )
+    monkeypatch.setattr(kokoro_tts_service, "synthesize", lambda text, speed: b"RIFF-test-wave")
+
+    response = client.post(
+        "/api/tts/synthesize",
+        json={"text": "Bonjour depuis ARIA.", "speed": 0.92},
+    )
+
+    assert response.status_code == 200
+    assert response.headers["content-type"] == "audio/wav"
+    assert response.content == b"RIFF-test-wave"
+
+def test_piper_status():
+    response = client.get("/api/piper-tts/status")
+    assert response.status_code == 200
+    assert {"available", "dependencies_installed", "model_installed", "voice"} <= response.json().keys()
+
+def test_piper_warmup(monkeypatch):
+    from services import piper_tts_service
+
+    monkeypatch.setattr(
+        piper_tts_service,
+        "status",
+        lambda: {
+            "available": True,
+            "dependencies_installed": True,
+            "model_installed": True,
+            "voice": "fr_FR-siwis-medium",
+        },
+    )
+    warmed_up = []
+    monkeypatch.setattr(piper_tts_service, "warm_up", lambda: warmed_up.append(True))
+
+    response = client.post("/api/piper-tts/warmup")
+
+    assert response.status_code == 200
+    assert response.json() == {"ready": True}
+    assert warmed_up == [True]
+
+def test_piper_synthesize_returns_wav(monkeypatch):
+    from services import piper_tts_service
+
+    monkeypatch.setattr(
+        piper_tts_service,
+        "status",
+        lambda: {
+            "available": True,
+            "dependencies_installed": True,
+            "model_installed": True,
+            "voice": "fr_FR-siwis-medium",
+        },
+    )
+    monkeypatch.setattr(piper_tts_service, "synthesize", lambda text, speed: b"RIFF-piper-wave")
+
+    response = client.post(
+        "/api/piper-tts/synthesize",
+        json={"text": "Bonjour rapidement.", "speed": 1.0},
+    )
+
+    assert response.status_code == 200
+    assert response.headers["content-type"] == "audio/wav"
+    assert response.content == b"RIFF-piper-wave"

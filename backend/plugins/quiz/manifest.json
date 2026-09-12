@@ -1,0 +1,20 @@
+{
+  "id": "quiz",
+  "name": "Quiz",
+  "version": "0.1.0",
+  "description": "Génération, stockage et réutilisation de quiz créés par ARIA",
+  "router_prefix": "/api/quiz",
+  "enabled_by_default": true,
+  "chat_handler": true,
+  "chat_handler_order": 90,
+  "chat_error_message": "Le générateur de quiz est indisponible",
+  "frontend": {
+    "component": "QuizPlayer",
+    "tab": {
+      "id": "quiz",
+      "label": "Quiz",
+      "icon": "quiz",
+      "order": 80
+    }
+  }
+}

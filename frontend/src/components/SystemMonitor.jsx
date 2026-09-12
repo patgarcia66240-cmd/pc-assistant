@@ -169,7 +169,7 @@ function SystemSkeleton() {
 
 const HISTORY_LENGTH = 20
 
-export default function SystemMonitor() {
+export default function SystemMonitor({ isActive = true }) {
   const [systemInfo, setSystemInfo] = useState(null)
   const [processes, setProcesses] = useState([])
   const [error, setError] = useState('')
@@ -177,24 +177,37 @@ export default function SystemMonitor() {
   const memoryHistoryRef = useRef([])
 
   useEffect(() => {
+    if (!isActive) return undefined
+    const controller = new AbortController()
+    let refreshTimer = null
+
     const fetchData = async () => {
       try {
-        const [infoRes, processRes] = await Promise.all([fetch('/api/system/info'), fetch('/api/system/processes')])
+        const requestOptions = { signal: controller.signal }
+        const [infoRes, processRes] = await Promise.all([
+          fetch('/api/system/info', requestOptions),
+          fetch('/api/system/processes', requestOptions),
+        ])
         if (!infoRes.ok || !processRes.ok) throw new Error('Impossible de charger les données système')
         const info = await infoRes.json()
+        if (controller.signal.aborted) return
         cpuHistoryRef.current = [...cpuHistoryRef.current, info.cpu_percent].slice(-HISTORY_LENGTH)
         memoryHistoryRef.current = [...memoryHistoryRef.current, info.memory.percent].slice(-HISTORY_LENGTH)
         setSystemInfo(info)
         setProcesses((await processRes.json()).processes || [])
         setError('')
       } catch (loadError) {
-        setError(loadError.message)
+        if (loadError.name !== 'AbortError') setError(loadError.message)
+      } finally {
+        if (!controller.signal.aborted) refreshTimer = setTimeout(fetchData, 3000)
       }
     }
     fetchData()
-    const interval = setInterval(fetchData, 3000)
-    return () => clearInterval(interval)
-  }, [])
+    return () => {
+      controller.abort()
+      if (refreshTimer) clearTimeout(refreshTimer)
+    }
+  }, [isActive])
 
   if (error) return <p className="rounded-lg border border-red-800 bg-red-950/30 p-4 text-sm text-red-300">{error}</p>
   if (!systemInfo) return <SystemSkeleton />

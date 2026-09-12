@@ -1,0 +1,20 @@
+{
+  "id": "calendar",
+  "name": "Agenda",
+  "version": "0.1.0",
+  "description": "Connexion Google Agenda (OAuth), gestion des événements, et assistant agenda IA dans le chat (chat_handler ajouté le 12/09/2026, extrait de routes/chat.py)",
+  "router_prefix": "/api/calendar",
+  "enabled_by_default": true,
+  "chat_handler": true,
+  "chat_handler_order": 200,
+  "chat_error_message": "Assistant agenda indisponible",
+  "frontend": {
+    "component": "CalendarAgenda",
+    "tab": {
+      "id": "calendar",
+      "label": "Agenda",
+      "icon": "calendar",
+      "order": 30
+    }
+  }
+}

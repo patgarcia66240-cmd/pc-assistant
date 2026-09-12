@@ -1,0 +1,17 @@
+{
+  "id": "image_generation",
+  "name": "Génération d’images",
+  "version": "0.1.0",
+  "description": "Création et conservation d’images avec OpenAI",
+  "router_prefix": "/api/images",
+  "enabled_by_default": true,
+  "frontend": {
+    "component": "ImageGenerator",
+    "tab": {
+      "id": "image_generation",
+      "label": "Images IA",
+      "icon": "image",
+      "order": 85
+    }
+  }
+}
