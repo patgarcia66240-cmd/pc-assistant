@@ -1,0 +1,187 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="1050" viewBox="0 0 1600 1050" role="img" aria-labelledby="title desc">
+  <title id="title">Architecture complète de PC Assistant ARIA</title>
+  <desc id="desc">Diagramme des interfaces, du backend FastAPI, des plugins, du stockage local et des services externes d'ARIA.</desc>
+  <defs>
+    <linearGradient id="page" x1="0" y1="0" x2="1600" y2="1050" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#081120"/>
+      <stop offset="1" stop-color="#111827"/>
+    </linearGradient>
+    <linearGradient id="brand" x1="0" y1="0" x2="1" y2="1">
+      <stop stop-color="#3B82F6"/>
+      <stop offset="1" stop-color="#06B6D4"/>
+    </linearGradient>
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="8" stdDeviation="12" flood-color="#000000" flood-opacity=".28"/>
+    </filter>
+    <marker id="arrowBlue" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0 0 10 5 0 10Z" fill="#60A5FA"/>
+    </marker>
+    <marker id="arrowCyan" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0 0 10 5 0 10Z" fill="#22D3EE"/>
+    </marker>
+    <style>
+      .title { font: 700 34px "Segoe UI", Arial, sans-serif; fill: #F8FAFC; }
+      .subtitle { font: 400 16px "Segoe UI", Arial, sans-serif; fill: #94A3B8; }
+      .section { font: 700 15px "Segoe UI", Arial, sans-serif; letter-spacing: 1.5px; fill: #7DD3FC; }
+      .box-title { font: 700 18px "Segoe UI", Arial, sans-serif; fill: #F8FAFC; }
+      .box-text { font: 400 14px "Segoe UI", Arial, sans-serif; fill: #CBD5E1; }
+      .small { font: 400 12px "Segoe UI", Arial, sans-serif; fill: #94A3B8; }
+      .chip { font: 600 12px "Segoe UI", Arial, sans-serif; fill: #E0F2FE; }
+      .flow { fill: none; stroke: #60A5FA; stroke-width: 2.4; marker-end: url(#arrowBlue); }
+      .flow-bi { fill: none; stroke: #22D3EE; stroke-width: 2.4; marker-start: url(#arrowCyan); marker-end: url(#arrowCyan); }
+      .dash { fill: none; stroke: #64748B; stroke-width: 1.8; stroke-dasharray: 7 7; marker-end: url(#arrowBlue); }
+    </style>
+  </defs>
+
+  <rect width="1600" height="1050" fill="url(#page)"/>
+  <circle cx="1430" cy="80" r="220" fill="#0EA5E9" opacity=".06"/>
+  <circle cx="130" cy="970" r="260" fill="#8B5CF6" opacity=".06"/>
+
+  <g transform="translate(70 54)">
+    <rect width="64" height="64" rx="16" fill="url(#brand)" filter="url(#shadow)"/>
+    <path d="M15 34c5-13 13-19 17-19s12 6 17 19c-5 13-13 19-17 19S20 47 15 34Z" fill="#0F2B5C" opacity=".45"/>
+    <circle cx="32" cy="34" r="10" fill="#A5F3FC"/>
+    <circle cx="32" cy="34" r="5" fill="#0B3A78"/>
+    <circle cx="35" cy="31" r="2" fill="#FFFFFF"/>
+  </g>
+  <text x="155" y="82" class="title">Architecture PC Assistant — ARIA</text>
+  <text x="155" y="108" class="subtitle">Assistant local modulaire · IA multiple · voix · messagerie · automatisation</text>
+
+  <text x="70" y="164" class="section">INTERFACES ET CANAUX</text>
+  <g filter="url(#shadow)">
+    <rect x="70" y="184" width="360" height="126" rx="18" fill="#172033" stroke="#334155"/>
+    <rect x="90" y="204" width="46" height="46" rx="12" fill="#2563EB"/>
+    <path d="M102 218h22v16h-12l-7 6v-6h-3Z" fill="none" stroke="#FFF" stroke-width="2"/>
+    <text x="152" y="222" class="box-title">Interface React + Vite</text>
+    <text x="152" y="246" class="box-text">Chat, voix, agenda, système, fichiers</text>
+    <text x="90" y="282" class="small">Plugins dynamiques · paramètres · galerie · quiz</text>
+
+    <rect x="455" y="184" width="260" height="126" rx="18" fill="#172033" stroke="#334155"/>
+    <rect x="475" y="204" width="46" height="46" rx="12" fill="#475569"/>
+    <rect x="487" y="211" width="22" height="30" rx="3" fill="none" stroke="#FFF" stroke-width="2"/>
+    <text x="537" y="222" class="box-title">Bureau Tauri</text>
+    <text x="537" y="246" class="box-text">Conteneur Windows,</text>
+    <text x="537" y="267" class="box-text">macOS et Linux</text>
+
+    <rect x="740" y="184" width="360" height="126" rx="18" fill="#172033" stroke="#334155"/>
+    <rect x="760" y="204" width="46" height="46" rx="12" fill="#16A34A"/>
+    <path d="M772 216h22v16h-10l-6 5v-5h-6Z" fill="none" stroke="#FFF" stroke-width="2"/>
+    <text x="822" y="222" class="box-title">WhatsApp + Telegram</text>
+    <text x="822" y="246" class="box-text">Texte, images, documents et audio</text>
+    <text x="760" y="282" class="small">Contacts · sessions ARIA · états de livraison</text>
+
+    <rect x="1125" y="184" width="405" height="126" rx="18" fill="#172033" stroke="#334155"/>
+    <rect x="1145" y="204" width="46" height="46" rx="12" fill="#7C3AED"/>
+    <path d="M1158 213v27m-7-8 7 8 8-8m-15-11 7-8 8 8" fill="none" stroke="#FFF" stroke-width="2"/>
+    <text x="1207" y="222" class="box-title">Entrées locales</text>
+    <text x="1207" y="246" class="box-text">Microphone, caméra, clavier, fichiers</text>
+    <text x="1145" y="282" class="small">Voix · pointeur main · collage Ctrl+V</text>
+  </g>
+
+  <path d="M250 310V356H615" class="flow"/>
+  <path d="M585 310V356H615" class="flow"/>
+  <path d="M920 310V356H985" class="flow"/>
+  <path d="M1328 310V356H985" class="flow"/>
+
+  <text x="70" y="382" class="section">COEUR LOCAL</text>
+  <g filter="url(#shadow)">
+    <rect x="70" y="402" width="1030" height="250" rx="22" fill="#101B30" stroke="#2563EB" stroke-width="2"/>
+    <rect x="92" y="424" width="986" height="56" rx="14" fill="url(#brand)" opacity=".92"/>
+    <text x="120" y="459" class="box-title">API FastAPI · http://127.0.0.1:8000</text>
+    <text x="760" y="458" class="chip">CORS local</text>
+    <rect x="852" y="439" width="192" height="26" rx="13" fill="#0F3E76" opacity=".9"/>
+    <text x="870" y="457" class="chip">API_AUTH_TOKEN optionnel</text>
+
+    <rect x="92" y="500" width="288" height="126" rx="15" fill="#17233B" stroke="#334155"/>
+    <text x="112" y="528" class="box-title">Routeur de chat</text>
+    <text x="112" y="553" class="box-text">Intentions et réponses streaming</text>
+    <text x="112" y="576" class="box-text">Contexte de conversation</text>
+    <text x="112" y="599" class="box-text">Appels des services IA</text>
+
+    <rect x="402" y="500" width="326" height="126" rx="15" fill="#17233B" stroke="#334155"/>
+    <text x="422" y="528" class="box-title">Chargeur de plugins</text>
+    <text x="422" y="553" class="box-text">Découverte des manifestes</text>
+    <text x="422" y="576" class="box-text">Routes, onglets et handlers</text>
+    <text x="422" y="599" class="box-text">Activation persistante</text>
+
+    <rect x="750" y="500" width="328" height="126" rx="15" fill="#17233B" stroke="#334155"/>
+    <text x="770" y="528" class="box-title">Services locaux</text>
+    <text x="770" y="553" class="box-text">Kokoro CUDA · Piper · système</text>
+    <text x="770" y="576" class="box-text">Fichiers · météo · géocodage</text>
+    <text x="770" y="599" class="box-text">Cycle de vie des messageries</text>
+  </g>
+
+  <g filter="url(#shadow)">
+    <rect x="1125" y="402" width="405" height="250" rx="22" fill="#101B30" stroke="#8B5CF6" stroke-width="2"/>
+    <text x="1152" y="438" class="box-title">Fournisseurs et services cloud</text>
+    <rect x="1152" y="459" width="166" height="44" rx="12" fill="#3B1D63"/>
+    <text x="1170" y="486" class="box-text">Anthropic Claude</text>
+    <rect x="1336" y="459" width="166" height="44" rx="12" fill="#123F3A"/>
+    <text x="1377" y="486" class="box-text">OpenAI</text>
+    <rect x="1152" y="517" width="166" height="44" rx="12" fill="#17385D"/>
+    <text x="1182" y="544" class="box-text">Google Gemini</text>
+    <rect x="1336" y="517" width="166" height="44" rx="12" fill="#443016"/>
+    <text x="1391" y="544" class="box-text">Qwen</text>
+    <rect x="1152" y="575" width="166" height="44" rx="12" fill="#183C2B"/>
+    <text x="1177" y="602" class="box-text">Google Agenda</text>
+    <rect x="1336" y="575" width="166" height="44" rx="12" fill="#3E2434"/>
+    <text x="1366" y="602" class="box-text">Données externes</text>
+  </g>
+  <path d="M1100 523H1125" class="flow-bi"/>
+
+  <text x="70" y="704" class="section">PLUGINS MÉTIER</text>
+  <g filter="url(#shadow)">
+    <rect x="70" y="724" width="1030" height="126" rx="20" fill="#121C2D" stroke="#334155"/>
+    <g>
+      <rect x="92" y="746" width="146" height="78" rx="13" fill="#17233B"/>
+      <text x="112" y="777" class="box-title">Agenda</text>
+      <text x="112" y="801" class="small">OAuth Google</text>
+      <rect x="253" y="746" width="146" height="78" rx="13" fill="#17233B"/>
+      <text x="273" y="777" class="box-title">Quiz</text>
+      <text x="273" y="801" class="small">QCM · Vrai/Faux</text>
+      <rect x="414" y="746" width="146" height="78" rx="13" fill="#17233B"/>
+      <text x="434" y="777" class="box-title">Images IA</text>
+      <text x="434" y="801" class="small">gpt-image-2</text>
+      <rect x="575" y="746" width="146" height="78" rx="13" fill="#17233B"/>
+      <text x="595" y="777" class="box-title">Messagerie</text>
+      <text x="595" y="801" class="small">WhatsApp · Telegram</text>
+      <rect x="736" y="746" width="146" height="78" rx="13" fill="#17233B"/>
+      <text x="756" y="777" class="box-title">Système</text>
+      <text x="756" y="801" class="small">CPU · RAM · disques</text>
+      <rect x="897" y="746" width="181" height="78" rx="13" fill="#17233B"/>
+      <text x="917" y="777" class="box-title">Informations</text>
+      <text x="917" y="801" class="small">Météo · bourse · saints</text>
+    </g>
+  </g>
+  <path d="M565 652V724" class="flow"/>
+
+  <g filter="url(#shadow)">
+    <rect x="1125" y="724" width="405" height="126" rx="20" fill="#121C2D" stroke="#22C55E"/>
+    <text x="1152" y="758" class="box-title">Ponts de messagerie</text>
+    <text x="1152" y="785" class="box-text">Baileys / WhatsApp Web · port 3001</text>
+    <text x="1152" y="810" class="box-text">Bot Telegram Python · API officielle</text>
+    <rect x="1400" y="744" width="102" height="28" rx="14" fill="#14532D"/>
+    <text x="1423" y="763" class="chip">Listes sûres</text>
+  </g>
+  <path d="M914 652V686H1328V724" class="flow"/>
+  <path d="M1328 724V680H920V310" class="dash"/>
+
+  <text x="70" y="902" class="section">DONNÉES LOCALES ET SECRETS</text>
+  <g filter="url(#shadow)">
+    <rect x="70" y="922" width="1460" height="82" rx="18" fill="#0F172A" stroke="#475569"/>
+    <rect x="92" y="943" width="250" height="40" rx="12" fill="#17233B"/>
+    <text x="120" y="968" class="box-text">SQLite · conversations · quiz</text>
+    <rect x="360" y="943" width="260" height="40" rx="12" fill="#17233B"/>
+    <text x="388" y="968" class="box-text">Médias et images générées</text>
+    <rect x="638" y="943" width="250" height="40" rx="12" fill="#17233B"/>
+    <text x="666" y="968" class="box-text">backend/.env · clés API</text>
+    <rect x="906" y="943" width="280" height="40" rx="12" fill="#17233B"/>
+    <text x="934" y="968" class="box-text">whatsapp-bridge/auth · session</text>
+    <rect x="1204" y="943" width="298" height="40" rx="12" fill="#17233B"/>
+    <text x="1232" y="968" class="box-text">Jetons OAuth · états locaux</text>
+  </g>
+  <path d="M565 850V922" class="flow"/>
+  <path d="M1328 850V884H1035V922" class="flow"/>
+
+  <text x="70" y="1030" class="small">Les secrets, sessions, bases SQLite et journaux d’exécution restent locaux et sont exclus de Git.</text>
+</svg>

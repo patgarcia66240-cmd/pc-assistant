@@ -6,12 +6,6 @@
   "router_prefix": "/api/whatsapp",
   "enabled_by_default": false,
   "frontend": {
-    "component": "WhatsAppPanel",
-    "tab": {
-      "id": "whatsapp",
-      "label": "WhatsApp",
-      "icon": "message",
-      "order": 85
-    }
+    "component": "WhatsAppPanel"
   }
 }

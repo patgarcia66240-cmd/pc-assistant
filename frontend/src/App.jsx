@@ -63,7 +63,6 @@ function PointerIcon() {
 // statique : chat, voice, calendar, saint, system, files).
 const CORE_TABS = [
   { id: 'chat', label: 'Chat', icon: 'chat', Component: ChatComponent, order: 10 },
-  { id: 'voice', label: 'Assistant vocal', icon: 'voice', Component: VoiceAssistant, order: 20 },
 ]
 
 const SETTINGS_TAB = { id: 'plugins', label: 'Plugins', icon: 'plugins', Component: PluginsPanel, order: 1000 }
@@ -82,6 +81,7 @@ function getInitialTab() {
 export default function App() {
   const [activeTab, setActiveTab] = useState(getInitialTab)
   const [settingsOpen, setSettingsOpen] = useState(false)
+  const [settingsTab, setSettingsTab] = useState('general')
   // Mode pointeur (curseur piloté par l'index de la main gauche, voir HandPointerOverlay) :
   // volontairement indépendant de VoiceAssistant.jsx (qui a son propre réglage caméra pour les
   // yeux/gestes, limité à son onglet) — celui-ci doit pouvoir cliquer n'importe où dans l'app, donc
@@ -115,6 +115,12 @@ export default function App() {
     const openPlugin = (event) => {
       const pluginId = event.detail?.pluginId
       if (!pluginId) return
+      if (['messaging', 'pointer_calibration', 'pointer', 'quiz', 'plugins', 'general'].includes(pluginId)) {
+        const mappedTab = pluginId === 'pointer_calibration' ? 'pointer' : pluginId
+        setSettingsTab(mappedTab)
+        setSettingsOpen(true)
+        return
+      }
       setActiveTab(pluginId)
       setVisitedTabs((previous) => (
         previous.has(pluginId) ? previous : new Set(previous).add(pluginId)
@@ -167,10 +173,8 @@ export default function App() {
 
   useEffect(() => {
     const openQuiz = () => {
-      setActiveTab('quiz')
-      setVisitedTabs((previous) => (
-        previous.has('quiz') ? previous : new Set(previous).add('quiz')
-      ))
+      setSettingsTab('quiz')
+      setSettingsOpen(true)
     }
     window.addEventListener(QUIZ_NAVIGATE_EVENT, openQuiz)
     return () => window.removeEventListener(QUIZ_NAVIGATE_EVENT, openQuiz)
@@ -207,9 +211,20 @@ export default function App() {
   // Si activeTab ne correspond à aucun tab connu pour l'instant (ex. 'calendar' visé par l'URL
   // mais /api/plugins pas encore répondu), on retombe temporairement sur Chat plutôt qu'un
   // écran vide — même filet de sécurité que l'ancien `?? ChatComponent`.
-  const effectiveActiveTab = tabs.some((tab) => tab.id === activeTab) ? activeTab : 'chat'
+  const effectiveActiveTab = (activeTab === 'voice' || tabs.some((tab) => tab.id === activeTab)) ? activeTab : 'chat'
 
   function selectTab(id) {
+    if (id === 'chat') {
+      if (effectiveActiveTab === 'chat') {
+        setActiveTab('voice')
+        setVisitedTabs((prev) => (prev.has('voice') ? prev : new Set(prev).add('voice')))
+        return
+      }
+      if (effectiveActiveTab === 'voice') {
+        setActiveTab('chat')
+        return
+      }
+    }
     setActiveTab(id)
     setVisitedTabs((prev) => (prev.has(id) ? prev : new Set(prev).add(id)))
   }
@@ -236,7 +251,10 @@ export default function App() {
         </button>
         <button
           type="button"
-          onClick={() => setSettingsOpen(true)}
+          onClick={() => {
+            setSettingsTab('general')
+            setSettingsOpen(true)
+          }}
           className="flex min-h-[44px] items-center gap-2 rounded-lg border border-gray-600 px-3 text-sm font-medium text-gray-200 transition hover:bg-gray-700 hover:text-white"
           aria-label="Ouvrir les paramètres"
         >
@@ -255,21 +273,32 @@ export default function App() {
         <nav className="shrink-0 overflow-x-auto border-b border-gray-700 bg-gray-800 p-3 md:w-52 md:overflow-visible md:border-b-0 md:border-r md:p-4" aria-label="Sections de l'application">
           <ul className="flex gap-3 md:flex-col">
             {tabs.map((tab, index) => {
-              const isActive = effectiveActiveTab === tab.id
-              const hasSeparatorAfter = index === 1 || index === tabs.length - 2
+              const isChatTab = tab.id === 'chat'
+              const isVoiceActive = effectiveActiveTab === 'voice'
+              const isChatActive = effectiveActiveTab === 'chat'
+              const isActive = isChatTab ? (isChatActive || isVoiceActive) : effectiveActiveTab === tab.id
+              const hasSeparatorAfter = index === 0 || index === tabs.length - 2
+
+              const icon = isChatTab ? (isVoiceActive ? 'chat' : 'voice') : tab.icon
+              const label = isChatTab ? (isVoiceActive ? 'Mode Chat' : 'Assistant vocal') : tab.label
+
               return (
                 <li key={tab.id} className="flex items-center gap-3 md:block">
                   <button
                     onClick={() => selectTab(tab.id)}
                     data-hand-pointer-target="menu"
-                    aria-current={isActive ? 'page' : undefined}
-                    className={`relative flex min-h-[44px] w-full flex-row items-center justify-start gap-3 whitespace-nowrap rounded-md px-3 py-2.5 text-left text-sm font-medium transition-colors md:px-4 ${
+                    aria-current={isActive && !isChatTab ? 'page' : undefined}
+                    aria-label={isChatTab ? (isVoiceActive ? 'Basculer en mode Chat' : 'Activer l\'assistant vocal') : tab.label}
+                    title={isChatTab ? (isVoiceActive ? 'Basculer en mode Chat' : 'Activer l\'assistant vocal') : undefined}
+                    className={`relative flex min-h-[44px] w-full flex-row items-center gap-3 whitespace-nowrap rounded-md px-3 py-2.5 text-left text-sm font-medium transition-colors md:px-4 ${
                       isActive ? 'bg-blue-600 text-white' : 'text-gray-300 hover:bg-gray-700 hover:text-white'
                     }`}
                   >
-                    {isActive && <span className="absolute inset-y-1.5 left-0 hidden w-0.5 rounded-full bg-blue-300 md:block" aria-hidden="true" />}
-                    <MenuIcon type={tab.icon} />
-                    <span>{tab.label}</span>
+                    {isActive && (
+                      <span className="absolute inset-y-1.5 left-0 hidden w-0.5 rounded-full bg-blue-300 md:block" aria-hidden="true" />
+                    )}
+                    <MenuIcon type={icon} />
+                    <span>{label}</span>
                   </button>
                   {hasSeparatorAfter && (
                     <div
@@ -295,10 +324,15 @@ export default function App() {
                   <tab.Component isActive={effectiveActiveTab === tab.id} />
                 </div>
               ))}
+            {visitedTabs.has('voice') && (
+              <div hidden={effectiveActiveTab !== 'voice'} className="h-full">
+                <VoiceAssistant isActive={effectiveActiveTab === 'voice'} />
+              </div>
+            )}
           </Suspense>
         </main>
       </div>
-      <AppSettingsModal open={settingsOpen} onClose={() => setSettingsOpen(false)} />
+      <AppSettingsModal open={settingsOpen} initialTab={settingsTab} onClose={() => setSettingsOpen(false)} />
       <HandPointerOverlay enabled={pointerMode} onError={handlePointerError} />
     </div>
   )

@@ -9,12 +9,6 @@
   "chat_handler_order": 90,
   "chat_error_message": "Le générateur de quiz est indisponible",
   "frontend": {
-    "component": "QuizPlayer",
-    "tab": {
-      "id": "quiz",
-      "label": "Quiz",
-      "icon": "quiz",
-      "order": 80
-    }
+    "component": "QuizPlayer"
   }
 }

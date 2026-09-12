@@ -5,6 +5,9 @@
   "description": "Création et conservation d’images avec OpenAI",
   "router_prefix": "/api/images",
   "enabled_by_default": true,
+  "chat_handler": true,
+  "chat_handler_order": 50,
+  "chat_error_message": "Le générateur d’images est indisponible",
   "frontend": {
     "component": "ImageGenerator",
     "tab": {

@@ -10,12 +10,6 @@
   "chat_handler_order": 60,
   "chat_error_message": "Messaging service unavailable",
   "frontend": {
-    "component": "Messaging",
-    "tab": {
-      "id": "messaging",
-      "label": "Messagerie",
-      "icon": "message",
-      "order": 90
-    }
+    "component": "Messaging"
   }
 }

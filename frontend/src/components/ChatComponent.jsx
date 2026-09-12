@@ -593,7 +593,7 @@ export default function ChatComponent() {
       if (!response.ok) {
         throw new Error(data.detail || `Chat request failed (${response.status})`)
       }
-      if (data.data?.navigate_to) navigateToPlugin(data.data.navigate_to)
+      if (data.data?.navigate_to) navigateToPlugin(data.data.navigate_to, data.data)
       const responseMessage = { id: pendingId || `response-${Date.now()}`, text: data.response, data: data.data, timeData: data.time_data, timeLabel: data.time_label, sender: 'aria', source: data.source || 'ai', sourceType: data.source_type, weatherType: data.weather_type }
       setMessages(prev => pendingId
         ? prev.map((message) => message.id === pendingId ? responseMessage : message)

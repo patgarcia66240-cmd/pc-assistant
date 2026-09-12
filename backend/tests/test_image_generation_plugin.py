@@ -85,6 +85,26 @@ def test_generate_image_stores_and_serves_png(monkeypatch):
             asyncio.run(cleanup())
 
 
+def test_chat_handler_matches_and_extracts_prompt():
+    from plugins.image_generation.chat_handler import extract_prompt, handle, matches
+
+    msg1 = "génère une image d'un pirate à Paris s'il te plaît"
+    assert matches(msg1)
+    assert extract_prompt(msg1) == "Un pirate à Paris"
+
+    msg2 = "peux-tu me créer un dessin de chat volant"
+    assert matches(msg2)
+    assert extract_prompt(msg2) == "Chat volant"
+
+    msg3 = "Quelle heure est-il ?"
+    assert not matches(msg3)
+
+    result = asyncio.run(handle(msg1, {}))
+    assert result["data"]["navigate_to"] == "image_generation"
+    assert result["data"]["prompt"] == "Un pirate à Paris"
+    assert result["data"]["auto_submit"] is True
+
+
 def test_generate_image_requires_openai_key(monkeypatch):
     monkeypatch.setattr(settings, "OPENAI_API_KEY", "")
 

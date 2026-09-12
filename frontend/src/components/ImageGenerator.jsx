@@ -1,4 +1,5 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useCallback } from 'react'
+import { PLUGIN_NAVIGATE_EVENT, getPendingNavigationPayload } from '../pluginNavigation'
 
 const API_URL = '/api/images'
 
@@ -42,21 +43,16 @@ export default function ImageGenerator() {
     }
   }
 
-  useEffect(() => {
-    loadPlugin()
-  }, [])
-
-  async function generateImage(event) {
-    event.preventDefault()
-    const cleanPrompt = prompt.trim()
-    if (!cleanPrompt || loading) return
+  const executeGeneration = useCallback(async (promptToUse, targetSize = size, targetQuality = quality) => {
+    const cleanPrompt = (promptToUse || '').trim()
+    if (!cleanPrompt) return
     setLoading(true)
     setError('')
     try {
       const response = await fetch(`${API_URL}/generate`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ prompt: cleanPrompt, size, quality }),
+        body: JSON.stringify({ prompt: cleanPrompt, size: targetSize, quality: targetQuality }),
       })
       const image = await readApiResponse(response)
       setImages((current) => [image, ...current])
@@ -65,6 +61,45 @@ export default function ImageGenerator() {
     } finally {
       setLoading(false)
     }
+  }, [size, quality])
+
+  const handleNavigationPayload = useCallback((payload) => {
+    if (!payload) return
+    const incomingPrompt = payload.prompt || ''
+    if (incomingPrompt) {
+      setPrompt(incomingPrompt)
+      if (payload.auto_submit) {
+        executeGeneration(incomingPrompt)
+      }
+    }
+  }, [executeGeneration])
+
+  useEffect(() => {
+    loadPlugin()
+  }, [])
+
+  useEffect(() => {
+    const onPluginNavigate = (event) => {
+      if (event.detail?.pluginId === 'image_generation') {
+        handleNavigationPayload(event.detail.payload)
+      }
+    }
+    window.addEventListener(PLUGIN_NAVIGATE_EVENT, onPluginNavigate)
+
+    const pending = getPendingNavigationPayload('image_generation')
+    if (pending) {
+      handleNavigationPayload(pending)
+    }
+
+    return () => {
+      window.removeEventListener(PLUGIN_NAVIGATE_EVENT, onPluginNavigate)
+    }
+  }, [handleNavigationPayload])
+
+  async function generateImage(event) {
+    event.preventDefault()
+    if (loading) return
+    executeGeneration(prompt)
   }
 
   async function deleteImage(imageId) {
