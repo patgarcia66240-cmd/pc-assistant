@@ -67,6 +67,46 @@ export function writePointerSettings(settings) {
   window.dispatchEvent(new CustomEvent(POINTER_SETTINGS_CHANGED_EVENT, { detail: settings }))
 }
 
+export async function fetchPointerSettings() {
+  try {
+    const res = await fetch('/api/pointer/settings')
+    if (res.ok) {
+      const data = await res.json()
+      if (data?.settings) {
+        writePointerSettings(data.settings)
+        return data.settings
+      }
+    }
+  } catch {
+    // Mode hors-ligne ou backend non disponible : on conserve le cache local
+  }
+  return readPointerSettings()
+}
+
+export async function savePointerSettings(settings) {
+  writePointerSettings(settings)
+  try {
+    await fetch('/api/pointer/settings', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(settings),
+    })
+  } catch {
+    // Mode hors-ligne : la valeur reste enregistrée localement
+  }
+}
+
+export async function resetPointerSettingsBackend() {
+  const defaults = { ...DEFAULT_POINTER_SETTINGS }
+  writePointerSettings(defaults)
+  try {
+    await fetch('/api/pointer/settings', { method: 'DELETE' })
+  } catch {
+    // Mode hors-ligne : la valeur reste réinitialisée localement
+  }
+  return defaults
+}
+
 export function readPointerCalibration() {
   try {
     const calibration = JSON.parse(localStorage.getItem(STORAGE_KEY))
@@ -99,9 +139,50 @@ export function writePointerCalibration(calibration) {
   window.dispatchEvent(new CustomEvent(POINTER_CALIBRATION_CHANGED_EVENT, { detail: calibration }))
 }
 
+export async function fetchPointerCalibration() {
+  try {
+    const res = await fetch('/api/pointer/calibration')
+    if (res.ok) {
+      const data = await res.json()
+      if (data?.calibration) {
+        writePointerCalibration(data.calibration)
+        return data.calibration
+      } else if (data?.calibration === null) {
+        clearPointerCalibration()
+        return null
+      }
+    }
+  } catch {
+    // Mode hors-ligne ou backend non disponible : on conserve le cache local
+  }
+  return readPointerCalibration()
+}
+
+export async function savePointerCalibration(calibration) {
+  writePointerCalibration(calibration)
+  try {
+    await fetch('/api/pointer/calibration', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(calibration),
+    })
+  } catch {
+    // Mode hors-ligne : la valeur reste enregistrée localement
+  }
+}
+
 export function clearPointerCalibration() {
   localStorage.removeItem(STORAGE_KEY)
   window.dispatchEvent(new CustomEvent(POINTER_CALIBRATION_CHANGED_EVENT, { detail: null }))
+}
+
+export async function deletePointerCalibration() {
+  clearPointerCalibration()
+  try {
+    await fetch('/api/pointer/calibration', { method: 'DELETE' })
+  } catch {
+    // Mode hors-ligne : la valeur reste effacée localement
+  }
 }
 
 export function applyPointerCalibration(point, calibration) {

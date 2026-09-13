@@ -1,7 +1,366 @@
 import { useEffect, useMemo, useState } from 'react'
 import { SkeletonBlock } from './Skeleton'
+import Prism from 'prismjs'
+import 'prismjs/themes/prism-tomorrow.css'
+import 'prismjs/components/prism-clike'
+import 'prismjs/components/prism-c'
+import 'prismjs/components/prism-csharp'
+import 'prismjs/components/prism-cpp'
+import 'prismjs/components/prism-python'
+import 'prismjs/components/prism-typescript'
+import 'prismjs/components/prism-jsx'
+import 'prismjs/components/prism-tsx'
+import 'prismjs/components/prism-rust'
+import 'prismjs/components/prism-json'
+import { marked } from 'marked'
+import DOMPurify from 'dompurify'
 
 const API_URL = '/api/files'
+
+// Association extension de fichier -> langage Prism.js pour la coloration syntaxique.
+const EXTENSION_TO_LANGUAGE = {
+  '.py': 'python',
+  '.js': 'javascript',
+  '.jsx': 'jsx',
+  '.tsx': 'tsx',
+  '.ts': 'typescript',
+  '.c': 'c',
+  '.h': 'c',
+  '.cs': 'csharp',
+  '.cpp': 'cpp',
+  '.hpp': 'cpp',
+  '.rs': 'rust',
+  '.json': 'json',
+}
+
+marked.setOptions({ breaks: true, gfm: true })
+
+function renderMarkdown(content) {
+  try {
+    const html = marked.parse(content)
+    return DOMPurify.sanitize(html)
+  } catch {
+    return null
+  }
+}
+
+function highlightCode(content, extension) {
+  const language = EXTENSION_TO_LANGUAGE[(extension || '').toLowerCase()]
+  const grammar = language && Prism.languages[language]
+  if (!grammar) {
+    return null
+  }
+  try {
+    return Prism.highlight(content, grammar, language)
+  } catch {
+    return null
+  }
+}
+
+// Petite icone triangle pour l'expand/collapse de l'arbre JSON.
+function CaretIcon({ expanded }) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="currentColor"
+      className={`h-3 w-3 shrink-0 transition-transform ${expanded ? 'rotate-90' : ''}`}
+      aria-hidden="true"
+    >
+      <path d="M8 5v14l11-7z" />
+    </svg>
+  )
+}
+
+// Noeud de l'arbre JSON collapsible : gere objets, tableaux et valeurs primitives colorees.
+function JsonNode({ nodeKey, value, depth }) {
+  const isArray = Array.isArray(value)
+  const isObject = value !== null && typeof value === 'object' && !isArray
+  const isCollapsible = isArray || isObject
+  const [expanded, setExpanded] = useState(depth < 2)
+
+  const keyLabel = nodeKey !== null ? (
+    <span className="text-sky-400">"{nodeKey}"</span>
+  ) : null
+
+  if (!isCollapsible) {
+    let valueNode
+    if (value === null) {
+      valueNode = <span className="text-gray-500 italic">null</span>
+    } else if (typeof value === 'string') {
+      valueNode = <span className="text-emerald-400">"{value}"</span>
+    } else if (typeof value === 'number') {
+      valueNode = <span className="text-amber-400">{String(value)}</span>
+    } else if (typeof value === 'boolean') {
+      valueNode = <span className="text-purple-400">{String(value)}</span>
+    } else {
+      valueNode = <span className="text-gray-200">{String(value)}</span>
+    }
+    return (
+      <div className="whitespace-pre">
+        {keyLabel && <>{keyLabel}<span className="text-gray-500">: </span></>}
+        {valueNode}
+      </div>
+    )
+  }
+
+  const entries = isArray ? value.map((v, i) => [i, v]) : Object.entries(value)
+  const openBracket = isArray ? '[' : '{'
+  const closeBracket = isArray ? ']' : '}'
+  const count = entries.length
+
+  return (
+    <div>
+      <button
+        type="button"
+        onClick={() => setExpanded((prev) => !prev)}
+        className="inline-flex items-center gap-1 rounded px-0.5 text-left hover:bg-gray-800/60"
+      >
+        <CaretIcon expanded={expanded} />
+        {keyLabel && <>{keyLabel}<span className="text-gray-500">: </span></>}
+        <span className="text-gray-400">{openBracket}</span>
+        {!expanded && (
+          <span className="text-gray-600">
+            {' '}{count} {isArray ? (count > 1 ? 'éléments' : 'élément') : (count > 1 ? 'clés' : 'clé')}{' '}
+          </span>
+        )}
+        {!expanded && <span className="text-gray-400">{closeBracket}</span>}
+      </button>
+      {expanded && (
+        <div className="ml-4 border-l border-gray-800 pl-3">
+          {entries.map(([k, v]) => (
+            <JsonNode key={k} nodeKey={isArray ? null : k} value={v} depth={depth + 1} />
+          ))}
+          <div className="text-gray-400">{closeBracket}</div>
+        </div>
+      )}
+    </div>
+  )
+}
+
+// Rendu Word (.docx) : paragraphes avec styles (titres, gras/italique, listes) + tableaux.
+function DocxViewer({ document: doc }) {
+  if (!doc) return null
+  const headingClasses = {
+    1: 'text-2xl font-bold text-white mt-4 mb-2',
+    2: 'text-xl font-bold text-white mt-4 mb-2',
+    3: 'text-lg font-semibold text-white mt-3 mb-1.5',
+  }
+  return (
+    <div className="max-h-[60vh] overflow-auto rounded-lg bg-gray-950 p-6 border border-gray-800 select-text">
+      {doc.paragraphs.map((para, i) => {
+        if (para.heading > 0) {
+          const cls = headingClasses[para.heading] || headingClasses[3]
+          return <p key={i} className={cls}>{para.text}</p>
+        }
+        const textCls = [
+          para.bold ? 'font-bold' : '',
+          para.italic ? 'italic' : '',
+        ].filter(Boolean).join(' ')
+        if (para.list) {
+          return (
+            <p key={i} className={`ml-4 text-sm text-gray-200 leading-relaxed ${textCls}`}>
+              <span className="text-gray-500">• </span>{para.text}
+            </p>
+          )
+        }
+        return (
+          <p key={i} className={`mb-2 text-sm text-gray-200 leading-relaxed ${textCls}`}>{para.text}</p>
+        )
+      })}
+      {doc.tables.map((table, ti) => (
+        <div key={ti} className="my-4 overflow-auto">
+          <table className="w-full border-collapse text-sm">
+            <tbody>
+              {table.rows.map((row, ri) => (
+                <tr key={ri} className={ri === 0 ? 'bg-gray-800/60 font-medium text-white' : 'text-gray-200'}>
+                  {row.map((cell, ci) => (
+                    <td key={ci} className="border border-gray-800 px-3 py-1.5">{cell}</td>
+                  ))}
+                </tr>
+              ))}
+            </tbody>
+          </table>
+          {table.truncated && (
+            <p className="mt-1 text-xs text-amber-400">Tableau tronqué (trop de lignes).</p>
+          )}
+        </div>
+      ))}
+      {doc.truncated && (
+        <p className="mt-3 text-xs text-amber-400">Document volumineux, seuls les premiers paragraphes sont affichés.</p>
+      )}
+      {doc.paragraphs.length === 0 && doc.tables.length === 0 && (
+        <p className="text-sm text-gray-500 italic">Document vide ou sans texte extractible.</p>
+      )}
+    </div>
+  )
+}
+
+// Rendu Excel (.xlsx) : onglets par feuille + grille de cellules.
+function XlsxViewer({ workbook }) {
+  const [activeSheet, setActiveSheet] = useState(0)
+  if (!workbook || workbook.sheets.length === 0) {
+    return <p className="py-8 text-center text-sm text-gray-500 italic">Classeur vide.</p>
+  }
+  const sheet = workbook.sheets[Math.min(activeSheet, workbook.sheets.length - 1)]
+  return (
+    <div className="rounded-lg border border-gray-800 bg-gray-950">
+      {workbook.sheets.length > 1 && (
+        <div className="flex gap-1 overflow-x-auto border-b border-gray-800 p-2">
+          {workbook.sheets.map((s, i) => (
+            <button
+              key={s.name}
+              type="button"
+              onClick={() => setActiveSheet(i)}
+              className={`shrink-0 rounded-md px-3 py-1.5 text-xs font-medium transition ${
+                i === activeSheet ? 'bg-blue-600 text-white' : 'bg-gray-800 text-gray-300 hover:bg-gray-700'
+              }`}
+            >
+              {s.name}
+            </button>
+          ))}
+        </div>
+      )}
+      <div className="max-h-[55vh] overflow-auto p-2">
+        <table className="w-full border-collapse text-xs">
+          <tbody>
+            {sheet.rows.map((row, ri) => (
+              <tr key={ri} className={ri === 0 ? 'bg-gray-800/60 font-medium text-white' : 'text-gray-200'}>
+                {row.map((cell, ci) => (
+                  <td key={ci} className="border border-gray-800 px-2 py-1 whitespace-nowrap">{cell}</td>
+                ))}
+              </tr>
+            ))}
+          </tbody>
+        </table>
+        {sheet.rows.length === 0 && (
+          <p className="py-6 text-center text-sm text-gray-500 italic">Feuille vide.</p>
+        )}
+      </div>
+      {sheet.truncated && (
+        <p className="border-t border-gray-800 px-3 py-1.5 text-xs text-amber-400">
+          Feuille tronquée (trop de lignes/colonnes).
+        </p>
+      )}
+    </div>
+  )
+}
+
+// Rendu PowerPoint (.pptx) : liste des diapositives avec titre, contenu texte et notes.
+function PptxViewer({ presentation }) {
+  if (!presentation || presentation.slides.length === 0) {
+    return <p className="py-8 text-center text-sm text-gray-500 italic">Présentation vide.</p>
+  }
+  return (
+    <div className="max-h-[60vh] overflow-auto space-y-3 pr-1">
+      {presentation.slides.map((slide) => (
+        <div key={slide.index} className="rounded-lg border border-gray-800 bg-gray-950 p-4">
+          <div className="mb-2 flex items-center gap-2">
+            <span className="rounded bg-gray-800 px-2 py-0.5 text-xs font-medium text-gray-400">
+              Slide {slide.index}
+            </span>
+            {slide.title && <h3 className="text-base font-semibold text-white">{slide.title}</h3>}
+          </div>
+          {slide.texts.map((text, ti) => (
+            <p key={ti} className="mb-1 whitespace-pre-line text-sm text-gray-200 leading-relaxed">{text}</p>
+          ))}
+          {slide.notes && (
+            <p className="mt-2 border-t border-gray-800 pt-2 text-xs italic text-gray-500">
+              Notes : {slide.notes}
+            </p>
+          )}
+        </div>
+      ))}
+      {presentation.truncated && (
+        <p className="text-xs text-amber-400">Présentation volumineuse, seules les premières diapositives sont affichées.</p>
+      )}
+    </div>
+  )
+}
+
+// Rendu base de données SQLite (.db/.sqlite) : onglets par table avec colonnes et lignes.
+function DbViewer({ database }) {
+  const [activeTable, setActiveTable] = useState(0)
+  if (!database || database.tables.length === 0) {
+    return <p className="py-8 text-center text-sm text-gray-500 italic">Base de données vide (aucune table).</p>
+  }
+  const table = database.tables[Math.min(activeTable, database.tables.length - 1)]
+  return (
+    <div className="rounded-lg border border-gray-800 bg-gray-950">
+      {database.tables.length > 1 && (
+        <div className="flex gap-1 overflow-x-auto border-b border-gray-800 p-2">
+          {database.tables.map((t, i) => (
+            <button
+              key={t.name}
+              type="button"
+              onClick={() => setActiveTable(i)}
+              className={`shrink-0 rounded-md px-3 py-1.5 text-xs font-medium transition ${
+                i === activeTable ? 'bg-blue-600 text-white' : 'bg-gray-800 text-gray-300 hover:bg-gray-700'
+              }`}
+            >
+              {t.name}
+            </button>
+          ))}
+        </div>
+      )}
+      <div className="flex items-center justify-between border-b border-gray-800 px-3 py-1.5">
+        <span className="text-xs font-medium text-gray-400">{table.row_count} ligne(s)</span>
+      </div>
+      <div className="max-h-[55vh] overflow-auto p-2">
+        <table className="w-full border-collapse text-xs">
+          <thead>
+            <tr className="bg-gray-800/60 font-medium text-white">
+              {table.columns.map((col, ci) => (
+                <th key={ci} className="border border-gray-800 px-2 py-1 text-left whitespace-nowrap">{col}</th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            {table.rows.map((row, ri) => (
+              <tr key={ri} className="text-gray-200">
+                {row.map((cell, ci) => (
+                  <td key={ci} className="border border-gray-800 px-2 py-1 whitespace-nowrap">{cell}</td>
+                ))}
+              </tr>
+            ))}
+          </tbody>
+        </table>
+        {table.rows.length === 0 && (
+          <p className="py-6 text-center text-sm text-gray-500 italic">Table vide.</p>
+        )}
+      </div>
+      {table.truncated && (
+        <p className="border-t border-gray-800 px-3 py-1.5 text-xs text-amber-400">
+          Table tronquée (trop de lignes, aperçu limité).
+        </p>
+      )}
+    </div>
+  )
+}
+
+function CloseIcon() {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-5 w-5" aria-hidden="true">
+      <path d="M18 6 6 18M6 6l12 12" />
+    </svg>
+  )
+}
+
+function DownloadIcon() {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" className="h-4 w-4" aria-hidden="true">
+      <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3" />
+    </svg>
+  )
+}
+
+function EyeIcon() {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" className="h-4 w-4" aria-hidden="true">
+      <path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z" />
+      <circle cx="12" cy="12" r="3" />
+    </svg>
+  )
+}
 
 function FolderIcon() {
   return (
@@ -119,6 +478,283 @@ function FileRowSkeleton() {
   )
 }
 
+function FilePreviewModal({ file, onClose }) {
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState('')
+  const [previewData, setPreviewData] = useState(null)
+
+  useEffect(() => {
+    if (!file) return
+    let isCancelled = false
+    setLoading(true)
+    setError('')
+
+    fetch(`${API_URL}/content?path=${encodeURIComponent(file.path)}`)
+      .then(async (res) => {
+        const data = await res.json()
+        if (!res.ok) throw new Error(data.detail || 'Impossible de charger le fichier')
+        return data
+      })
+      .then((data) => {
+        if (!isCancelled) {
+          setPreviewData(data)
+          setLoading(false)
+        }
+      })
+      .catch((err) => {
+        if (!isCancelled) {
+          setError(err.message)
+          setLoading(false)
+        }
+      })
+
+    return () => {
+      isCancelled = true
+    }
+  }, [file])
+
+  if (!file) return null
+
+  const rawUrl = `${API_URL}/raw?path=${encodeURIComponent(file.path)}`
+  const downloadUrl = `${API_URL}/raw?path=${encodeURIComponent(file.path)}&download=true`
+
+  const renderContent = () => {
+    if (loading) {
+      return (
+        <div className="flex h-64 flex-col items-center justify-center gap-3 text-gray-400">
+          <div className="h-8 w-8 animate-spin rounded-full border-2 border-blue-500 border-t-transparent" />
+          <p className="text-sm">Chargement de l'aperçu...</p>
+        </div>
+      )
+    }
+
+    if (error) {
+      return (
+        <div className="flex h-48 flex-col items-center justify-center gap-3 text-center">
+          <p className="text-sm text-red-400">{error}</p>
+          <a
+            href={downloadUrl}
+            className="inline-flex items-center gap-2 rounded-md bg-gray-800 px-3 py-2 text-sm font-medium text-white transition hover:bg-gray-700"
+          >
+            <DownloadIcon />
+            Télécharger quand même
+          </a>
+        </div>
+      )
+    }
+
+    const type = previewData?.type || 'binary'
+
+    if (type === 'image') {
+      return (
+        <div className="flex max-h-[70vh] items-center justify-center overflow-auto rounded-lg bg-black/40 p-4">
+          <img
+            src={rawUrl}
+            alt={file.name}
+            className="max-h-[60vh] max-w-full rounded object-contain shadow-lg"
+          />
+        </div>
+      )
+    }
+
+    if (type === 'audio') {
+      return (
+        <div className="flex flex-col items-center justify-center gap-4 py-12">
+          <div className="flex h-20 w-20 items-center justify-center rounded-full bg-blue-950/40 text-blue-400">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" className="h-10 w-10">
+              <path d="M9 18V5l12-2v13" />
+              <circle cx="6" cy="18" r="3" />
+              <circle cx="18" cy="16" r="3" />
+            </svg>
+          </div>
+          <p className="text-sm font-medium text-gray-200">{file.name}</p>
+          <audio controls className="w-full max-w-md" src={rawUrl}>
+            Votre navigateur ne supporte pas la lecture audio.
+          </audio>
+        </div>
+      )
+    }
+
+    if (type === 'video') {
+      return (
+        <div className="flex max-h-[70vh] items-center justify-center overflow-hidden rounded-lg bg-black/50 p-2">
+          <video controls className="max-h-[60vh] max-w-full rounded shadow-lg" src={rawUrl}>
+            Votre navigateur ne supporte pas la lecture vidéo.
+          </video>
+        </div>
+      )
+    }
+
+    if (type === 'docx') {
+      return <DocxViewer document={previewData?.document} />
+    }
+
+    if (type === 'xlsx') {
+      return <XlsxViewer workbook={previewData?.workbook} />
+    }
+
+    if (type === 'pptx') {
+      return <PptxViewer presentation={previewData?.presentation} />
+    }
+
+    if (type === 'db') {
+      return <DbViewer database={previewData?.database} />
+    }
+
+    if (type === 'pdf') {
+      return (
+        <div className="h-[65vh] w-full overflow-hidden rounded-lg bg-gray-900 border border-gray-800">
+          <iframe
+            src={rawUrl}
+            title={file.name}
+            className="h-full w-full border-0"
+          />
+        </div>
+      )
+    }
+
+    if (type === 'text' && previewData?.extension === '.json' && previewData?.content !== null) {
+      let parsed
+      let parseError = false
+      try {
+        parsed = JSON.parse(previewData.content)
+      } catch {
+        parseError = true
+      }
+      if (!parseError) {
+        return (
+          <div className="relative">
+            {previewData?.truncated && (
+              <div className="mb-2 rounded bg-amber-950/40 border border-amber-800/60 px-3 py-1.5 text-xs text-amber-300">
+                Ce fichier est volumineux, seul le premier mégaoctet est affiché.
+              </div>
+            )}
+            <div className="max-h-[60vh] overflow-auto rounded-lg bg-gray-950 p-4 font-mono text-xs leading-relaxed border border-gray-800 select-text">
+              <JsonNode nodeKey={null} value={parsed} depth={0} />
+            </div>
+          </div>
+        )
+      }
+    }
+
+    if (type === 'text' && previewData?.extension === '.md' && previewData?.content !== null) {
+      const html = renderMarkdown(previewData.content)
+      if (html !== null) {
+        return (
+          <div className="relative">
+            {previewData?.truncated && (
+              <div className="mb-2 rounded bg-amber-950/40 border border-amber-800/60 px-3 py-1.5 text-xs text-amber-300">
+                Ce fichier est volumineux, seul le premier mégaoctet est affiché.
+              </div>
+            )}
+            <div
+              className="markdown-preview max-h-[60vh] overflow-auto rounded-lg bg-gray-950 p-6 border border-gray-800 select-text"
+              dangerouslySetInnerHTML={{ __html: html }}
+            />
+          </div>
+        )
+      }
+    }
+
+    if (type === 'text' && previewData?.content !== null) {
+      const highlighted = highlightCode(previewData.content, previewData?.extension)
+      return (
+        <div className="relative">
+          {previewData?.truncated && (
+            <div className="mb-2 rounded bg-amber-950/40 border border-amber-800/60 px-3 py-1.5 text-xs text-amber-300">
+              Ce fichier est volumineux, seul le premier mégaoctet est affiché.
+            </div>
+          )}
+          <pre className="max-h-[60vh] overflow-auto rounded-lg bg-gray-950 p-4 font-mono text-xs leading-relaxed border border-gray-800 select-text whitespace-pre-wrap break-words">
+            {highlighted ? (
+              <code
+                className={`language-${EXTENSION_TO_LANGUAGE[(previewData?.extension || '').toLowerCase()]}`}
+                dangerouslySetInnerHTML={{ __html: highlighted }}
+              />
+            ) : (
+              <code className="text-gray-200">{previewData?.content}</code>
+            )}
+          </pre>
+        </div>
+      )
+    }
+
+    // Binary / non géré directement
+    return (
+      <div className="flex flex-col items-center justify-center gap-4 py-12 text-center">
+        <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-gray-800 text-gray-400">
+          <FileIcon />
+        </div>
+        <div>
+          <p className="text-base font-medium text-white">{file.name}</p>
+          <p className="mt-1 text-sm text-gray-400">
+            Aperçu direct non disponible pour ce type de fichier ({formatSize(file.size)})
+          </p>
+        </div>
+        <a
+          href={downloadUrl}
+          className="inline-flex items-center gap-2 rounded-lg bg-gradient-to-br from-blue-600 to-cyan-500 px-4 py-2.5 text-sm font-medium text-white shadow-lg shadow-blue-950/40 transition hover:opacity-90"
+        >
+          <DownloadIcon />
+          Télécharger le fichier
+        </a>
+      </div>
+    )
+  }
+
+  return (
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 p-4 backdrop-blur-sm"
+      role="dialog"
+      aria-modal="true"
+      aria-label={`Aperçu de ${file.name}`}
+      onClick={(e) => {
+        if (e.target === e.currentTarget) onClose()
+      }}
+    >
+      <div className="flex max-h-[90vh] w-full max-w-4xl flex-col rounded-2xl border border-gray-700 bg-gray-900 shadow-2xl">
+        {/* Modal Header */}
+        <div className="flex items-center justify-between border-b border-gray-800 px-5 py-3.5">
+          <div className="flex min-w-0 items-center gap-3">
+            <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-blue-950/50 text-blue-400">
+              <FileIcon />
+            </span>
+            <div className="min-w-0">
+              <h3 className="truncate text-base font-semibold text-white">{file.name}</h3>
+              <p className="text-xs text-gray-400">{formatSize(file.size)} &bull; {file.path}</p>
+            </div>
+          </div>
+          <div className="flex items-center gap-2">
+            <a
+              href={downloadUrl}
+              download={file.name}
+              title="Télécharger"
+              aria-label="Télécharger"
+              className="inline-flex h-9 items-center gap-1.5 rounded-lg border border-gray-700 bg-gray-800 px-3 text-xs font-medium text-gray-200 transition hover:bg-gray-700 hover:text-white"
+            >
+              <DownloadIcon />
+              <span className="hidden sm:inline">Télécharger</span>
+            </a>
+            <button
+              onClick={onClose}
+              title="Fermer"
+              aria-label="Fermer"
+              className="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-gray-700 text-gray-400 transition hover:bg-gray-800 hover:text-white"
+            >
+              <CloseIcon />
+            </button>
+          </div>
+        </div>
+
+        {/* Modal Body */}
+        <div className="flex-1 overflow-auto p-5">
+          {renderContent()}
+        </div>
+      </div>
+    </div>
+  )
+}
+
 function FilesSkeleton() {
   return (
     <div className="min-w-[34rem]">
@@ -134,6 +770,14 @@ function FilesSkeleton() {
   )
 }
 
+// Convertit un motif type "glob" (ex: "*.csv", "rapport_?.xlsx") en RegExp insensible à la
+// casse. `*` = n'importe quelle suite de caractères, `?` = un seul caractère. Les autres
+// caractères spéciaux regex sont échappés pour rester un simple filtre de nom de fichier.
+function globToRegExp(pattern) {
+  const escaped = pattern.replace(/[.+^${}()|[\]\\]/g, '\\$&').replace(/\*/g, '.*').replace(/\?/g, '.')
+  return new RegExp(`^${escaped}$`, 'i')
+}
+
 export default function FileManager() {
   const [path, setPath] = useState('.')
   const [files, setFiles] = useState([])
@@ -142,6 +786,7 @@ export default function FileManager() {
   const [filter, setFilter] = useState('all')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
+  const [selectedFileForPreview, setSelectedFileForPreview] = useState(null)
   // Saisie manuelle d'un chemin : repliée par défaut (le fil d'Ariane suffit pour naviguer dans
   // la quasi-totalité des cas) et sur son propre brouillon (pathDraft), pour ne plus mélanger
   // "ce qu'on tape" et "le dossier réellement affiché" comme avant (l'input reflétait `path`
@@ -177,9 +822,15 @@ export default function FileManager() {
 
   const visibleFiles = useMemo(() => {
     const normalizedSearch = search.trim().toLowerCase()
+    const isGlob = /[*?]/.test(normalizedSearch)
+    const globRegExp = isGlob ? globToRegExp(normalizedSearch) : null
     return files
       .filter((file) => filter === 'all' || (filter === 'folders' ? file.is_dir : !file.is_dir))
-      .filter((file) => !normalizedSearch || file.name.toLowerCase().includes(normalizedSearch))
+      .filter((file) => {
+        if (!normalizedSearch) return true
+        const name = file.name.toLowerCase()
+        return isGlob ? globRegExp.test(name) : name.includes(normalizedSearch)
+      })
       .sort((left, right) => {
         if (left.is_dir !== right.is_dir) return left.is_dir ? -1 : 1
         return left.name.localeCompare(right.name, undefined, { sensitivity: 'base' })
@@ -343,9 +994,9 @@ export default function FileManager() {
             <input
               value={search}
               onChange={(event) => setSearch(event.target.value)}
-              placeholder="Rechercher..."
+              placeholder="Rechercher... (ex. *.csv)"
               className="w-full rounded-md border border-gray-700 bg-gray-900 py-2 pl-9 pr-3 text-sm text-white outline-none transition placeholder:text-gray-500 focus:border-blue-500"
-              aria-label="Rechercher un fichier"
+              aria-label="Rechercher un fichier (nom ou motif type *.csv)"
             />
           </div>
           <div className="inline-flex rounded-md border border-gray-700 bg-gray-900/60 p-1" role="group" aria-label="Filtrer l'affichage">
@@ -424,12 +1075,17 @@ export default function FileManager() {
                 <button
                   key={file.path}
                   onDoubleClick={() => loadFiles(file.path)}
-                  className="grid w-full grid-cols-[minmax(0,1fr)_8rem_7rem] gap-3 border-b border-gray-800 px-4 py-3 text-left text-sm text-gray-200 transition last:border-b-0 hover:bg-gray-700/50"
+                  className="grid w-full grid-cols-[minmax(0,1fr)_8rem_7rem] gap-3 border-b border-gray-800 px-4 py-3 text-left text-sm text-gray-200 transition last:border-b-0 hover:bg-gray-700/50 cursor-pointer"
                 >
                   {rowContent}
                 </button>
               ) : (
-                <div key={file.path} className="grid w-full grid-cols-[minmax(0,1fr)_8rem_7rem] gap-3 border-b border-gray-800 px-4 py-3 text-sm text-gray-200 last:border-b-0">
+                <div
+                  key={file.path}
+                  onClick={() => setSelectedFileForPreview(file)}
+                  className="grid w-full grid-cols-[minmax(0,1fr)_8rem_7rem] gap-3 border-b border-gray-800 px-4 py-3 text-sm text-gray-200 last:border-b-0 hover:bg-gray-800/80 cursor-pointer transition"
+                  title="Cliquer pour prévisualiser"
+                >
                   {rowContent}
                 </div>
               )
@@ -437,6 +1093,13 @@ export default function FileManager() {
           </div>
         )}
       </div>
+
+      {selectedFileForPreview && (
+        <FilePreviewModal
+          file={selectedFileForPreview}
+          onClose={() => setSelectedFileForPreview(null)}
+        />
+      )}
     </section>
   )
 }

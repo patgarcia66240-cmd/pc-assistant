@@ -16,7 +16,6 @@ export default function PluginsPanel({ onChanged } = {}) {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
   const [pending, setPending] = useState(null)
-  const [restartNotice, setRestartNotice] = useState(false)
 
   function loadPlugins() {
     setLoading(true)
@@ -39,7 +38,6 @@ export default function PluginsPanel({ onChanged } = {}) {
       const action = plugin.enabled ? 'disable' : 'enable'
       const response = await fetch(`/api/plugins/${plugin.id}/${action}`, { method: 'POST' })
       if (!response.ok) throw new Error(`HTTP ${response.status}`)
-      setRestartNotice(true)
       loadPlugins()
       // Prévient AppSettingsModal (grisage des sous-onglets) et App.jsx (menu gauche) pour que
       // le changement soit visible immédiatement, sans attendre un changement d'onglet ou un
@@ -58,12 +56,6 @@ export default function PluginsPanel({ onChanged } = {}) {
       <p className="mb-4 text-sm text-gray-400">
         Les fonctionnalités d'ARIA installées sous forme de plugins. Active ou désactive-les ici.
       </p>
-
-      {restartNotice && (
-        <div className="mb-4 rounded-lg border border-amber-800/60 bg-amber-950/40 px-3 py-2 text-sm text-amber-200">
-          Redémarre ARIA pour que ce changement prenne effet.
-        </div>
-      )}
 
       {loading && <p className="text-sm text-gray-400">Chargement…</p>}
       {error && <p className="text-sm text-red-300">Erreur : {error}</p>}

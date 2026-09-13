@@ -1,6 +1,7 @@
 """File management routes"""
 from pathlib import Path
 from fastapi import APIRouter, File, HTTPException, UploadFile
+from fastapi.responses import FileResponse
 from services.file_service import file_service
 
 router = APIRouter()
@@ -19,6 +20,44 @@ async def list_files(path: str = "."):
     except Exception as error:
         raise HTTPException(status_code=400, detail="Invalid path") from error
     return {"path": current_path, "files": files}
+
+@router.get("/content")
+async def get_file_content(path: str):
+    """Get metadata and text content (if applicable) of a file."""
+    try:
+        return file_service.read_file_content(path)
+    except FileNotFoundError as error:
+        raise HTTPException(status_code=404, detail="File not found") from error
+    except ValueError as error:
+        raise HTTPException(status_code=400, detail="Invalid path") from error
+    except Exception as error:
+        raise HTTPException(status_code=500, detail=str(error)) from error
+
+@router.get("/raw")
+async def get_file_raw(path: str, download: bool = False):
+    """Serve the raw file stream for images, audio, video, PDF or download."""
+    try:
+        resolved = file_service.resolve_path(path)
+        if not resolved.is_file():
+            raise HTTPException(status_code=404, detail="File not found")
+        
+        # Déterminer si on force le téléchargement
+        filename = resolved.name
+        headers = {}
+        if download:
+            headers["Content-Disposition"] = f'attachment; filename="{filename}"'
+            
+        return FileResponse(
+            path=str(resolved),
+            filename=filename if download else None,
+            headers=headers
+        )
+    except HTTPException:
+        raise
+    except ValueError as error:
+        raise HTTPException(status_code=400, detail="Invalid path") from error
+    except Exception as error:
+        raise HTTPException(status_code=500, detail=str(error)) from error
 
 @router.post("/upload")
 async def upload_file(file: UploadFile = File(...)):

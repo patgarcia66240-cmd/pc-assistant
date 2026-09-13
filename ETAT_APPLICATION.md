@@ -95,10 +95,11 @@ prend desormais en charge des plugins backend et frontend activables par l'utili
 - curseur global en suivi absolu du bout de l'index, avec clic par pincement entre le pouce et
   un doigt configurable ;
 - compensation de distance, stabilisation des mouvements et attraction des boutons du menu ;
-- plugin frontend **Calibrage pointeur** avec assistant en quatre points ;
-- calibration enregistree dans le stockage local du navigateur et appliquee immediatement ;
+- plugin **Calibrage pointeur** avec assistant en quatre points et persistance REST backend ;
+- calibration et réglages persistés côté backend (`/api/pointer/calibration`, `/api/pointer/settings`)
+  avec synchronisation automatique et cache local navigateur ;
 - panneau d'essai pour la resolution camera et les seuils MediaPipe de detection, presence et suivi ;
-- reinitialisation disponible depuis l'onglet du plugin pour revenir au reglage automatique.
+- reinitialisation disponible depuis l'onglet du plugin pour revenir aux valeurs recommandees.
 
 ### Agenda
 
@@ -114,11 +115,22 @@ prend desormais en charge des plugins backend et frontend activables par l'utili
 - liste des processus ;
 - rafraichissement depuis l'interface.
 
-### Fichiers
+### Fichiers et visualiseur
 
 - liste des emplacements accessibles ;
 - navigation dans les dossiers sous `FILES_ROOT` ;
-- televersement limite a la racine de fichiers configuree.
+- televersement limite a la racine de fichiers configuree ;
+- visualiseur et previsualisation multiformat integres :
+  - lecture et affichage du code et texte avec encodage UTF-8/latin1 ;
+  - coloration syntaxique (Prism.js) pour Python, JavaScript/JSX, TypeScript/TSX, C, C++/H/HPP, C# et Rust ;
+  - rendu Markdown (`.md`) en HTML formate (gras, italique, souligne, titres, listes, citations, tableaux, blocs de code) via marked + DOMPurify ;
+  - visualiseur JSON (`.json`) colore et arborescence collapsible (objets/tableaux repliables, cles/valeurs colorees par type) ;
+  - apercu des documents Office : Word (`.docx` - titres, paragraphes, listes, tableaux), Excel (`.xlsx`/`.xlsm` - grille par feuille avec onglets), PowerPoint (`.pptx` - diapositives avec titre/texte/notes), via python-docx/openpyxl/python-pptx cote backend ;
+  - apercu des bases de donnees SQLite (`.db`/`.sqlite`/`.sqlite3`/`.db3`) : liste des tables avec onglets, colonnes et lignes (via le module sqlite3 standard, ouverture en lecture seule) ;
+  - affichage direct des images (PNG, JPG, SVG, WebP, GIF...) ;
+  - lecteur audio et video HTML5 integre ;
+  - previsualisation des documents PDF ;
+  - modal avec details, bouton de telechargement direct et fermeture intuitive.
 
 ### Saint du jour
 
@@ -169,7 +181,8 @@ Plugins integres actuellement :
 | `city_details` | Backend uniquement | `/api/city-details` | Utilise par le chat | Oui |
 | `kokoro_tts` | Backend uniquement | `/api/tts` | Utilise par l'assistant vocal | Oui |
 | `piper_tts` | Backend uniquement | `/api/piper-tts` | Utilise par l'assistant vocal | Oui |
-| `pointer_calibration` | Frontend uniquement | Aucune | Onglet Calibrage pointeur | Oui |
+| `files` | Backend et frontend | `/api/files` | Onglet Fichiers (avec visualiseur) | Oui |
+| `pointer_calibration` | Backend et frontend | `/api/pointer` | Onglet Calibrage pointeur | Oui |
 | `quiz` | Backend et frontend | `/api/quiz` | Onglet Quiz | Oui |
 | `image_generation` | Backend et frontend | `/api/images` | Onglet Images IA | Oui |
 

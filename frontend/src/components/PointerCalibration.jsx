@@ -6,11 +6,14 @@ import {
   POINTER_MODE_EVENT,
   POINTER_MODE_REQUEST_EVENT,
   DEFAULT_POINTER_SETTINGS,
-  clearPointerCalibration,
+  deletePointerCalibration,
+  fetchPointerCalibration,
+  fetchPointerSettings,
   readPointerCalibration,
   readPointerSettings,
-  writePointerCalibration,
-  writePointerSettings,
+  resetPointerSettingsBackend,
+  savePointerCalibration,
+  savePointerSettings,
 } from '../pointerCalibration'
 
 const TARGETS = [
@@ -46,6 +49,19 @@ export default function PointerCalibration({ isActive = true }) {
   const [error, setError] = useState('')
 
   useEffect(() => {
+    let mounted = true
+    fetchPointerCalibration().then((cal) => {
+      if (mounted && cal !== undefined) setCalibration(cal)
+    })
+    fetchPointerSettings().then((st) => {
+      if (mounted && st) setPointerSettings(st)
+    })
+    return () => {
+      mounted = false
+    }
+  }, [])
+
+  useEffect(() => {
     const updatePointerMode = (event) => setPointerEnabled(Boolean(event.detail?.enabled))
     window.addEventListener(POINTER_MODE_EVENT, updatePointerMode)
     return () => window.removeEventListener(POINTER_MODE_EVENT, updatePointerMode)
@@ -68,7 +84,7 @@ export default function PointerCalibration({ isActive = true }) {
           window.dispatchEvent(new Event(POINTER_CALIBRATION_STOP_EVENT))
           return
         }
-        writePointerCalibration(nextCalibration)
+        savePointerCalibration(nextCalibration)
         setCalibration(nextCalibration)
         setSamples([])
         setCalibrating(false)
@@ -100,7 +116,7 @@ export default function PointerCalibration({ isActive = true }) {
   }
 
   function resetCalibration() {
-    clearPointerCalibration()
+    deletePointerCalibration()
     setCalibration(null)
     setError('')
   }
@@ -111,7 +127,7 @@ export default function PointerCalibration({ isActive = true }) {
   }
 
   function applySettings() {
-    writePointerSettings(pointerSettings)
+    savePointerSettings(pointerSettings)
     if (!pointerEnabled) {
       window.dispatchEvent(new CustomEvent(POINTER_MODE_REQUEST_EVENT, { detail: { enabled: true } }))
     }
@@ -119,10 +135,9 @@ export default function PointerCalibration({ isActive = true }) {
     setError('')
   }
 
-  function resetSettings() {
-    const defaults = { ...DEFAULT_POINTER_SETTINGS }
+  async function resetSettings() {
+    const defaults = await resetPointerSettingsBackend()
     setPointerSettings(defaults)
-    writePointerSettings(defaults)
     if (!pointerEnabled) {
       window.dispatchEvent(new CustomEvent(POINTER_MODE_REQUEST_EVENT, { detail: { enabled: true } }))
     }
