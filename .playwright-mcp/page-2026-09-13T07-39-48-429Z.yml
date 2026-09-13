@@ -1,0 +1,34 @@
+- generic [ref=e3]:
+  - banner [ref=e4]:
+    - img "Logo ARIA" [ref=e5]
+    - heading "ARIA PC Assistant" [level=1] [ref=e6]
+    - button "Activer ou désactiver le pointeur main (index gauche)" [ref=e7] [cursor=pointer]:
+      - generic [ref=e10]: Pointeur
+    - button "Ouvrir les paramètres" [ref=e11] [cursor=pointer]:
+      - generic [ref=e15]: Paramètres
+  - generic [ref=e16]:
+    - navigation "Sections de l'application" [ref=e17]:
+      - list [ref=e18]:
+        - listitem [ref=e19]:
+          - button "Activer l'assistant vocal" [ref=e20] [cursor=pointer]:
+            - generic [ref=e25]: Assistant vocal
+          - separator [ref=e26]
+        - listitem [ref=e27]:
+          - button "Plugins" [ref=e28] [cursor=pointer]
+    - main [ref=e33]:
+      - generic [ref=e35]:
+        - generic [ref=e36]:
+          - generic [ref=e37]:
+            - generic [aria-hidden] [ref=e38]: A
+            - generic [ref=e39]:
+              - paragraph [ref=e40]: Assistant
+              - heading "Conversation avec ARIA" [level=2] [ref=e41]
+          - generic [ref=e42]: Prête
+        - generic [ref=e50]:
+          - paragraph [ref=e51]: Commencez la conversation
+          - paragraph [ref=e52]: Posez une question, demandez la météo, un cours de bourse ou de devise, une fiche de roi de France...
+        - generic [ref=e54]:
+          - 'textbox "Flèche haut/bas : parcourir les messages envoyés" [ref=e55]':
+            - /placeholder: Écrire un message...
+          - button "Parler au micro" [ref=e56] [cursor=pointer]
+          - button "Envoyer" [ref=e60] [cursor=pointer]

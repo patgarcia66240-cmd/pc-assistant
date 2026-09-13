@@ -77,15 +77,26 @@ function QuizIcon({ className = "h-4 w-4" }) {
   )
 }
 
+// pluginId: null pour les sous-onglets qui ne correspondent à aucun plugin désactivable
+// (Général = préférences de base, Plugins = le panneau lui-même) — les autres sont grisés
+// et rendent un message à la place de leur contenu quand le plugin correspondant est désactivé.
 const SUB_TABS = [
-  { id: 'general', label: 'Général', Icon: GearIcon },
-  { id: 'messaging', label: 'Messagerie', Icon: MessageIcon },
-  { id: 'pointer', label: 'Calibrage Pointeur', Icon: PointerIcon },
-  { id: 'quiz', label: 'Quiz', Icon: QuizIcon },
-  { id: 'plugins', label: 'Plugins', Icon: PluginsIcon },
+  { id: 'general', label: 'Général', Icon: GearIcon, pluginId: null },
+  { id: 'messaging', label: 'Messagerie', Icon: MessageIcon, pluginId: 'messaging' },
+  { id: 'pointer', label: 'Calibrage Pointeur', Icon: PointerIcon, pluginId: 'pointer_calibration' },
+  { id: 'quiz', label: 'Quiz', Icon: QuizIcon, pluginId: 'quiz' },
+  { id: 'plugins', label: 'Plugins', Icon: PluginsIcon, pluginId: null },
 ]
 
-export default function AppSettingsModal({ open, onClose, initialTab = 'general' }) {
+function PluginDisabledNotice({ label }) {
+  return (
+    <div className="rounded-lg border border-gray-700 bg-gray-800/60 p-4 text-sm text-gray-400">
+      Le plugin « {label} » est désactivé. Active-le depuis l’onglet <span className="text-gray-200">Plugins</span> pour accéder à cette section.
+    </div>
+  )
+}
+
+export default function AppSettingsModal({ open, onClose, initialTab = 'general', onPluginsChanged }) {
   const [activeSubTab, setActiveSubTab] = useState(initialTab || 'general')
   const [preferences, setPreferences] = useState({
     country: 'France',
@@ -103,12 +114,45 @@ export default function AppSettingsModal({ open, onClose, initialTab = 'general'
   const [loading, setLoading] = useState(false)
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState(null)
+  // État "enabled" des plugins (par id) tel que déclaré par le backend — sert à griser les
+  // sous-onglets Messagerie/Calibrage Pointeur/Quiz quand le plugin correspondant est désactivé
+  // depuis l'onglet Plugins (voir PluginsPanel.jsx et SUB_TABS ci-dessus).
+  const [pluginsById, setPluginsById] = useState({})
 
   useEffect(() => {
     if (open) {
       setActiveSubTab(initialTab || 'general')
     }
   }, [open, initialTab])
+
+  // Extraite en fonction nommée (plutôt qu'inline dans l'effet) pour pouvoir la rappeler à la
+  // demande — notamment juste après un activer/désactiver dans le sous-onglet Plugins, afin que
+  // le grisage des sous-onglets Messagerie/Calibrage Pointeur/Quiz se mette à jour immédiatement,
+  // sans attendre un changement de sous-onglet ou une réouverture de la modale.
+  function refreshPluginsById() {
+    fetch('/api/plugins')
+      .then((response) => (response.ok ? response.json() : []))
+      .then((plugins) => {
+        setPluginsById(Object.fromEntries(plugins.map((plugin) => [plugin.id, plugin])))
+      })
+      .catch((requestError) => console.error('Impossible de charger l’état des plugins :', requestError))
+  }
+
+  // Rechargé à l'ouverture et à chaque changement de sous-onglet (pas seulement au montage) :
+  // si l'utilisateur active/désactive un plugin depuis le sous-onglet Plugins puis revient sur
+  // Messagerie/Calibrage Pointeur/Quiz, le grisage doit refléter l'état à jour sans réouvrir la modale.
+  useEffect(() => {
+    if (!open) return
+    refreshPluginsById()
+  }, [open, activeSubTab])
+
+  // Appelé par PluginsPanel juste après un activer/désactiver réussi : rafraîchit le grisage des
+  // sous-onglets ici, et prévient App.jsx (via onPluginsChanged) pour que le menu gauche
+  // apparaisse/disparaisse immédiatement lui aussi.
+  function handlePluginsChanged() {
+    refreshPluginsById()
+    onPluginsChanged?.()
+  }
 
   useEffect(() => {
     if (!open) return undefined
@@ -200,17 +244,22 @@ export default function AppSettingsModal({ open, onClose, initialTab = 'general'
             </button>
           </div>
           <div className="mt-4 flex space-x-1 border-b border-gray-700/60 pb-px">
-            {SUB_TABS.map(({ id, label, Icon }) => {
+            {SUB_TABS.map(({ id, label, Icon, pluginId }) => {
               const active = activeSubTab === id
+              const disabled = pluginId ? pluginsById[pluginId]?.enabled === false : false
               return (
                 <button
                   key={id}
                   type="button"
                   onClick={() => setActiveSubTab(id)}
+                  disabled={disabled}
+                  title={disabled ? 'Plugin désactivé — active-le depuis l’onglet Plugins' : undefined}
                   className={`flex items-center gap-2 border-b-2 px-3 py-2 text-sm font-medium transition-colors ${
-                    active
-                      ? 'border-blue-500 text-blue-400'
-                      : 'border-transparent text-gray-400 hover:border-gray-600 hover:text-gray-200'
+                    disabled
+                      ? 'cursor-not-allowed border-transparent text-gray-600 opacity-50'
+                      : active
+                        ? 'border-blue-500 text-blue-400'
+                        : 'border-transparent text-gray-400 hover:border-gray-600 hover:text-gray-200'
                   }`}
                 >
                   <Icon className="h-4 w-4" />
@@ -402,10 +451,22 @@ export default function AppSettingsModal({ open, onClose, initialTab = 'general'
             </form>
           )}
 
-          {activeSubTab === 'messaging' && <Messaging />}
-          {activeSubTab === 'pointer' && <PointerCalibration />}
-          {activeSubTab === 'quiz' && <QuizPlayer />}
-          {activeSubTab === 'plugins' && <PluginsPanel />}
+          {activeSubTab === 'messaging' && (
+            pluginsById.messaging?.enabled === false
+              ? <PluginDisabledNotice label="Messagerie" />
+              : <Messaging />
+          )}
+          {activeSubTab === 'pointer' && (
+            pluginsById.pointer_calibration?.enabled === false
+              ? <PluginDisabledNotice label="Calibrage Pointeur" />
+              : <PointerCalibration />
+          )}
+          {activeSubTab === 'quiz' && (
+            pluginsById.quiz?.enabled === false
+              ? <PluginDisabledNotice label="Quiz" />
+              : <QuizPlayer />
+          )}
+          {activeSubTab === 'plugins' && <PluginsPanel onChanged={handlePluginsChanged} />}
         </div>
       </div>
     </div>

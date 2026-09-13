@@ -11,7 +11,7 @@ function StatusBadge({ enabled, loadError }) {
   )
 }
 
-export default function PluginsPanel() {
+export default function PluginsPanel({ onChanged } = {}) {
   const [plugins, setPlugins] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
@@ -41,6 +41,10 @@ export default function PluginsPanel() {
       if (!response.ok) throw new Error(`HTTP ${response.status}`)
       setRestartNotice(true)
       loadPlugins()
+      // Prévient AppSettingsModal (grisage des sous-onglets) et App.jsx (menu gauche) pour que
+      // le changement soit visible immédiatement, sans attendre un changement d'onglet ou un
+      // rechargement de page.
+      onChanged?.()
     } catch (err) {
       setError(err.message)
     } finally {

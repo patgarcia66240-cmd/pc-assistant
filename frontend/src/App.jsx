@@ -170,6 +170,25 @@ export default function App() {
   // plugins n'a pas encore fini de charger, on peut quand même retomber sur Chat sans écran vide.
   const [visitedTabs, setVisitedTabs] = useState(() => new Set([getInitialTab(), 'chat']))
   const [pluginTabs, setPluginTabs] = useState([])
+  // Le plugin pointer_calibration n'a pas de `frontend.tab` (voir loadPluginTabs ci-dessous),
+  // donc son état n'apparaît pas dans pluginTabs : on le suit à part pour griser/masquer le
+  // bouton "Pointeur" de l'en-tête quand le plugin est désactivé.
+  const [pointerAvailable, setPointerAvailable] = useState(true)
+
+  // Si le plugin est désactivé pendant que le pointeur main est actif, on coupe la caméra/l'overlay
+  // au lieu de la laisser tourner en arrière-plan derrière un bouton qui vient de disparaître.
+  useEffect(() => {
+    if (!pointerAvailable && pointerMode) {
+      setPointerMode(false)
+      setPointerError(null)
+      try {
+        localStorage.setItem('aria-pointer-mode', '0')
+      } catch {
+        // stockage indisponible : sans conséquence, le mode reste coupé pour la session en cours.
+      }
+      window.dispatchEvent(new CustomEvent(POINTER_MODE_EVENT, { detail: { enabled: false } }))
+    }
+  }, [pointerAvailable, pointerMode])
 
   useEffect(() => {
     const openQuiz = () => {
@@ -183,12 +202,13 @@ export default function App() {
   // Construit les tabs à partir des plugins ACTIFS déclarés par le backend (GET /api/plugins).
   // Un plugin désactivé, en erreur de chargement, ou sans section `frontend.tab` dans son
   // manifest (ex. city_details ou config, backend-only) n'ajoute simplement aucun tab.
-  useEffect(() => {
-    let cancelled = false
+  // Extraite en fonction nommée (plutôt qu'inline dans l'effet) pour pouvoir la rappeler à la
+  // demande — notamment depuis AppSettingsModal/PluginsPanel juste après un
+  // activer/désactiver, afin que le menu gauche se mette à jour immédiatement sans reload.
+  function loadPluginTabs() {
     fetch('/api/plugins')
       .then((response) => (response.ok ? response.json() : []))
       .then((plugins) => {
-        if (cancelled) return
         const tabs = plugins
           .filter((plugin) => plugin.enabled && !plugin.load_error && plugin.frontend?.tab && plugin.frontend?.component)
           .map((plugin) => ({
@@ -200,11 +220,15 @@ export default function App() {
           }))
           .filter((tab) => tab.Component)
         setPluginTabs(tabs)
+
+        const pointerPlugin = plugins.find((plugin) => plugin.id === 'pointer_calibration')
+        setPointerAvailable(Boolean(pointerPlugin?.enabled && !pointerPlugin?.load_error))
       })
       .catch((error) => console.error('Impossible de charger la liste des plugins ARIA :', error))
-    return () => {
-      cancelled = true
-    }
+  }
+
+  useEffect(() => {
+    loadPluginTabs()
   }, [])
 
   const tabs = [...CORE_TABS, ...pluginTabs, SETTINGS_TAB].sort((a, b) => a.order - b.order)
@@ -234,28 +258,32 @@ export default function App() {
       <header className="flex shrink-0 items-center gap-3 border-b border-gray-700 bg-gray-800 p-4">
         <AppMark />
         <h1 className="text-2xl font-bold leading-none">ARIA <span className="font-normal text-gray-400">PC Assistant</span></h1>
-        <button
-          type="button"
-          onClick={togglePointerMode}
-          className={`ml-auto flex min-h-[44px] items-center gap-2 rounded-lg border px-3 text-sm font-medium transition ${
-            pointerMode
-              ? 'border-blue-500 bg-blue-600 text-white hover:bg-blue-500'
-              : 'border-gray-600 text-gray-200 hover:bg-gray-700 hover:text-white'
-          }`}
-          aria-pressed={pointerMode}
-          aria-label="Activer ou désactiver le pointeur main (index gauche)"
-          title="Pointeur main : déplace le curseur avec l'index gauche, pincez les doigts pour cliquer"
-        >
-          <PointerIcon />
-          <span className="hidden sm:inline">Pointeur</span>
-        </button>
+        {pointerAvailable && (
+          <button
+            type="button"
+            onClick={togglePointerMode}
+            className={`ml-auto flex min-h-[44px] items-center gap-2 rounded-lg border px-3 text-sm font-medium transition ${
+              pointerMode
+                ? 'border-blue-500 bg-blue-600 text-white hover:bg-blue-500'
+                : 'border-gray-600 text-gray-200 hover:bg-gray-700 hover:text-white'
+            }`}
+            aria-pressed={pointerMode}
+            aria-label="Activer ou désactiver le pointeur main (index gauche)"
+            title="Pointeur main : déplace le curseur avec l'index gauche, pincez les doigts pour cliquer"
+          >
+            <PointerIcon />
+            <span className="hidden sm:inline">Pointeur</span>
+          </button>
+        )}
         <button
           type="button"
           onClick={() => {
             setSettingsTab('general')
             setSettingsOpen(true)
           }}
-          className="flex min-h-[44px] items-center gap-2 rounded-lg border border-gray-600 px-3 text-sm font-medium text-gray-200 transition hover:bg-gray-700 hover:text-white"
+          className={`flex min-h-[44px] items-center gap-2 rounded-lg border border-gray-600 px-3 text-sm font-medium text-gray-200 transition hover:bg-gray-700 hover:text-white ${
+            pointerAvailable ? '' : 'ml-auto'
+          }`}
           aria-label="Ouvrir les paramètres"
         >
           <SettingsIcon />
@@ -332,7 +360,12 @@ export default function App() {
           </Suspense>
         </main>
       </div>
-      <AppSettingsModal open={settingsOpen} initialTab={settingsTab} onClose={() => setSettingsOpen(false)} />
+      <AppSettingsModal
+        open={settingsOpen}
+        initialTab={settingsTab}
+        onClose={() => setSettingsOpen(false)}
+        onPluginsChanged={loadPluginTabs}
+      />
       <HandPointerOverlay enabled={pointerMode} onError={handlePointerError} />
     </div>
   )
