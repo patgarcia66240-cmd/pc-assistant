@@ -1,5 +1,7 @@
 """File management service"""
+import fnmatch
 import os
+import shutil
 from pathlib import Path
 from config import settings
 
@@ -496,5 +498,147 @@ class FileService:
         except (PermissionError, ValueError):
             pass
         return files
+
+    @classmethod
+    def find_files(cls, pattern: str, path: str = ".", limit: int = 50):
+        """Recherche récursive par motif glob (ex. "*.pdf", "rapport*.docx") sur le NOM des
+        fichiers uniquement — complémentaire de search_files (qui fait un "contient" simple) :
+        utilisé par l'assistant fichiers dans le chat (voir services/file_assistant.py) pour
+        répondre à "trouve-moi le fichier ..." avec un vrai motif plutôt qu'une sous-chaîne.
+        Renvoie des chemins relatifs (cohérents avec list_files), pas des chemins absolus."""
+        results = []
+        try:
+            base = cls.resolve_path(path)
+            for root, _dirs, filenames in os.walk(base):
+                for filename in filenames:
+                    if fnmatch.fnmatch(filename.lower(), pattern.lower()):
+                        results.append(cls.relative_path(Path(root) / filename))
+                        if len(results) >= limit:
+                            return results
+        except (PermissionError, ValueError):
+            pass
+        return results
+
+    # Limite de profondeur/volume pour summarize_directory : un dossier utilisateur peut contenir
+    # des centaines de milliers d'éléments (ex. node_modules, .git...) — sans borne, l'assistant
+    # fichiers du chat bloquerait plusieurs secondes/minutes sur un simple "fais-moi un résumé de
+    # ce dossier". Au-delà, le résumé reste correct mais indique explicitement qu'il est partiel.
+    DIR_SUMMARY_MAX_ENTRIES = 20000
+
+    @classmethod
+    def summarize_directory(cls, path: str = ".", max_largest: int = 10):
+        """Parcourt récursivement un dossier et calcule des statistiques agrégées (nombre de
+        fichiers/dossiers, taille totale, répartition par extension, plus gros fichiers) — conçu
+        pour que l'assistant fichiers du chat/vocal (voir services/file_assistant.py) puisse
+        répondre à "fais-moi un compte rendu de ce dossier" avec des chiffres réels plutôt qu'en
+        essayant de résumer à l'œil une liste à plat (peu fiable au-delà de quelques dizaines
+        d'éléments, et impossible pour un contenu réparti sur des sous-dossiers)."""
+        base = cls.resolve_path(path)
+        if not base.is_dir():
+            raise NotADirectoryError(f"Not a directory: {path}")
+
+        file_count = 0
+        dir_count = 0
+        total_size = 0
+        by_extension = {}
+        largest = []  # liste de (size, relative_path), triée/tronquée à la volée
+        truncated = False
+        entries_seen = 0
+
+        for root, dirs, filenames in os.walk(base):
+            dir_count += len(dirs)
+            for filename in filenames:
+                entries_seen += 1
+                if entries_seen > cls.DIR_SUMMARY_MAX_ENTRIES:
+                    truncated = True
+                    break
+                full_path = Path(root) / filename
+                try:
+                    size = full_path.stat().st_size
+                except OSError:
+                    continue
+                file_count += 1
+                total_size += size
+                ext = full_path.suffix.lower() or "(sans extension)"
+                by_extension[ext] = by_extension.get(ext, 0) + 1
+                largest.append((size, cls.relative_path(full_path)))
+                largest.sort(key=lambda item: item[0], reverse=True)
+                del largest[max_largest:]
+            if truncated:
+                break
+
+        top_extensions = sorted(by_extension.items(), key=lambda item: item[1], reverse=True)[:15]
+        return {
+            "path": cls.relative_path(base),
+            "file_count": file_count,
+            "folder_count": dir_count,
+            "total_size": total_size,
+            "by_extension": [{"extension": ext, "count": count} for ext, count in top_extensions],
+            "largest_files": [{"path": rel, "size": size} for size, rel in largest],
+            "truncated": truncated,
+        }
+
+    @classmethod
+    def _guard_not_root(cls, resolved: Path) -> None:
+        """Refuse toute opération destructive/de renommage directement sur FILES_ROOT ou un
+        dossier alias (Bureau, Documents...) lui-même — seul leur CONTENU doit être modifiable,
+        jamais le dossier racine qu'ils désignent (éviterait de renommer ou supprimer par erreur
+        tout le dossier Documents de l'utilisatrice, par exemple)."""
+        protected = {cls.root, *cls.aliases().values()}
+        if resolved in protected:
+            raise ValueError("Impossible de modifier cet emplacement racine")
+
+    @classmethod
+    def create_folder(cls, path: str) -> Path:
+        """Crée un nouveau dossier (échoue s'il existe déjà — pas d'écrasement silencieux)."""
+        resolved = cls.resolve_path(path)
+        if resolved.exists():
+            raise FileExistsError(f"« {resolved.name} » existe déjà")
+        resolved.mkdir(parents=True, exist_ok=False)
+        return resolved
+
+    @classmethod
+    def create_file(cls, path: str, content: str = "") -> Path:
+        """Crée un nouveau fichier texte (échoue s'il existe déjà). Les dossiers parents
+        manquants sont créés au passage, comme pour create_folder."""
+        resolved = cls.resolve_path(path)
+        if resolved.exists():
+            raise FileExistsError(f"« {resolved.name} » existe déjà")
+        resolved.parent.mkdir(parents=True, exist_ok=True)
+        resolved.write_text(content or "", encoding="utf-8")
+        return resolved
+
+    @classmethod
+    def rename_path(cls, path: str, new_name: str) -> Path:
+        """Renomme un fichier ou un dossier, sans le déplacer ailleurs : new_name est TOUJOURS
+        traité comme un simple nom (Path(new_name).name), tout séparateur de chemin qu'il
+        contiendrait est ignoré — empêche new_name="../../autre_dossier/x" de sortir du dossier
+        parent d'origine (déjà validé par resolve_path, mais on ne veut même pas essayer)."""
+        resolved = cls.resolve_path(path)
+        if not resolved.exists():
+            raise FileNotFoundError(f"Introuvable : {path}")
+        cls._guard_not_root(resolved)
+        clean_name = Path(new_name).name.strip()
+        if not clean_name or clean_name in {".", ".."}:
+            raise ValueError("Nouveau nom invalide")
+        target = resolved.with_name(clean_name)
+        if target.exists():
+            raise FileExistsError(f"« {clean_name} » existe déjà")
+        resolved.rename(target)
+        return target
+
+    @classmethod
+    def delete_path(cls, path: str) -> None:
+        """Supprime définitivement un fichier, ou un dossier ET tout son contenu. Irréversible —
+        aucune corbeille : à n'appeler qu'après une décision explicite (voir file_assistant.py,
+        qui instruit Claude de confirmer l'élément exact avant d'utiliser cet outil)."""
+        resolved = cls.resolve_path(path)
+        if not resolved.exists():
+            raise FileNotFoundError(f"Introuvable : {path}")
+        cls._guard_not_root(resolved)
+        if resolved.is_dir():
+            shutil.rmtree(resolved)
+        else:
+            resolved.unlink()
 
 file_service = FileService()

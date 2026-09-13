@@ -131,6 +131,39 @@ prend desormais en charge des plugins backend et frontend activables par l'utili
   - lecteur audio et video HTML5 integre ;
   - previsualisation des documents PDF ;
   - modal avec details, bouton de telechargement direct et fermeture intuitive.
+- recherche par motif glob dans la barre de recherche (ex. `*.csv`, `rapport*.pdf`) ;
+- operations de gestion via l'API : recherche recursive (`/api/files/search`), compte rendu recursif
+  d'un dossier (`/api/files/summary` : nombre de fichiers/dossiers, taille totale, repartition par
+  extension, plus gros fichiers), creation de dossier/fichier, renommage et suppression
+  (`/api/files/folder`, `/api/files/file`, `/api/files/rename`, `/api/files/delete`), avec protection
+  de la racine et des alias (Bureau, Documents...) contre le renommage/la suppression directe.
+
+#### Assistant fichiers IA (chat et vocal)
+
+ARIA peut piloter le plugin Fichiers directement depuis le chat ou la commande vocale
+(`backend/services/file_assistant.py`, assistant a base d'outils Claude, meme principe que
+l'assistant Agenda) :
+
+- afficher un document dans le visualiseur (« ouvre le fichier rapport.pdf ») ;
+- filtrer/rechercher un fichier ou un dossier (« trouve le fichier budget dans mes documents »,
+  « filtre les fichiers par *.csv ») ;
+- analyser un fichier (lecture de contenu, apercu structure) ;
+- faire un compte rendu d'un repertoire, oralement ou dans le chat (« fais-moi un compte rendu du
+  dossier Projets ») en s'appuyant sur `summarize_directory` ; dans le chat, le compte rendu
+  s'affiche sous forme de carte structuree (`DirectorySummaryCard` dans `ChatComponent.jsx` :
+  tuiles de stats, repartition par extension, fichiers les plus lourds) plutot que du texte
+  markdown brut, avec l'analyse textuelle d'ARIA repliable en dessous ; a l'oral, la reponse reste
+  la phrase generee par Claude ;
+- creer, renommer ou supprimer un fichier/dossier, avec confirmation demandee en cas d'ambiguite
+  avant toute suppression (irreversible, pas de corbeille).
+
+La detection des demandes se fait via `backend/plugins/files/chat_handler.py` (regex bilingue sur
+les verbes d'action et les mots-clefs fichiers/dossiers) ; le plugin est declare comme
+`chat_handler` dans son manifest (`chat_handler_order: 150`). Quand une action necessite d'afficher
+quelque chose a l'ecran (ouverture d'un fichier, resultat de recherche, compte rendu d'un dossier),
+la reponse embarque une navigation (`data.navigate_to = "files"`) reprise par le mecanisme generique
+deja utilise par les autres plugins (`PLUGIN_NAVIGATE_EVENT`), ce qui bascule automatiquement sur
+l'onglet Fichiers et ouvre le bon dossier/fichier dans le visualiseur.
 
 ### Saint du jour
 

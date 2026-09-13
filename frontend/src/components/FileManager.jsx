@@ -1,5 +1,6 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useState, useCallback } from 'react'
 import { SkeletonBlock } from './Skeleton'
+import { PLUGIN_NAVIGATE_EVENT, getPendingNavigationPayload } from '../pluginNavigation'
 import Prism from 'prismjs'
 import 'prismjs/themes/prism-tomorrow.css'
 import 'prismjs/components/prism-clike'
@@ -818,6 +819,41 @@ export default function FileManager() {
 
   useEffect(() => {
     Promise.all([loadLocations(), loadFiles('.')]).catch((loadError) => setError(loadError.message))
+  }, [])
+
+  // Navigation déclenchée depuis le chat/vocal (assistant fichiers, voir
+  // backend/services/file_assistant.py + backend/plugins/files/chat_handler.py) : le payload
+  // data.navigate_to="files" transporte path (dossier à afficher), search (motif à pré-remplir
+  // dans le filtre) et/ou open_path (fichier à ouvrir directement dans le visualiseur).
+  const applyNavigationPayload = (payload) => {
+    if (!payload) return
+    const targetPath = payload.path || '.'
+    loadFiles(targetPath).then(() => {
+      if (payload.open_path) {
+        const name = payload.open_path.split('/').pop() || payload.open_path
+        setSelectedFileForPreview({ path: payload.open_path, name, size: 0, is_dir: false })
+      }
+    })
+    if (payload.search) {
+      setSearch(payload.search)
+    }
+  }
+
+  useEffect(() => {
+    const onPluginNavigate = (event) => {
+      if (event.detail?.pluginId === 'files') {
+        applyNavigationPayload(event.detail.payload)
+      }
+    }
+    window.addEventListener(PLUGIN_NAVIGATE_EVENT, onPluginNavigate)
+
+    const pending = getPendingNavigationPayload('files')
+    if (pending) {
+      applyNavigationPayload(pending)
+    }
+
+    return () => window.removeEventListener(PLUGIN_NAVIGATE_EVENT, onPluginNavigate)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   const visibleFiles = useMemo(() => {

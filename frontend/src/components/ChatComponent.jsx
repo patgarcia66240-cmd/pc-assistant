@@ -136,6 +136,14 @@ function SourceIcon({ type }) {
     )
   }
 
+  if (type === 'files') {
+    return (
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" className="h-3.5 w-3.5" aria-hidden="true">
+        <path d="M3 7.5a1.5 1.5 0 0 1 1.5-1.5h4l2 2h8a1.5 1.5 0 0 1 1.5 1.5v9A1.5 1.5 0 0 1 18.5 20h-14A1.5 1.5 0 0 1 3 18.5v-11Z" />
+      </svg>
+    )
+  }
+
   // Même glyphe que CalendarIcon (CalendarAgenda.jsx) / l'icône d'onglet Agenda (App.jsx), pour une
   // identité visuelle cohérente entre la grille et les réponses de l'assistant agenda.
   if (type === 'calendar') {
@@ -250,6 +258,7 @@ function CrownIcon() {
 // nouvelle catégorie API est ajoutée côté backend.
 function sourceBadgeLabel(msg) {
   if (msg.sourceType === 'calendar_assistant') return 'Agenda'
+  if (msg.sourceType === 'file_assistant' || msg.sourceType === 'file_summary') return 'Fichiers'
   if (msg.source !== 'local') return 'IA'
   switch (msg.sourceType) {
     case 'weather':
@@ -288,6 +297,9 @@ function sourceBadgeLabel(msg) {
 function sourceBadgeClass(msg) {
   if (msg.sourceType === 'calendar_assistant') {
     return 'border-blue-700/60 bg-gradient-to-r from-blue-950/60 to-cyan-950/40 text-blue-300'
+  }
+  if (msg.sourceType === 'file_assistant' || msg.sourceType === 'file_summary') {
+    return 'border-indigo-700/60 bg-indigo-950/40 text-indigo-300'
   }
   if (msg.source !== 'local') return 'border-violet-700/60 bg-violet-950/40 text-violet-300'
   if (msg.sourceType === 'weather') return 'border-sky-700/60 bg-sky-950/40 text-sky-300'
@@ -768,9 +780,11 @@ export default function ChatComponent() {
                         type={
                           msg.sourceType === 'calendar_assistant'
                             ? 'calendar'
-                            : msg.source === 'local'
-                              ? (msg.sourceType === 'weather' ? msg.weatherType : msg.sourceType)
-                              : 'ai'
+                            : msg.sourceType === 'file_assistant' || msg.sourceType === 'file_summary'
+                              ? 'files'
+                              : msg.source === 'local'
+                                ? (msg.sourceType === 'weather' ? msg.weatherType : msg.sourceType)
+                                : 'ai'
                         }
                       />
                     )}
@@ -841,6 +855,8 @@ export default function ChatComponent() {
                 <KingsTimeline kings={msg.data} onSelectKing={(king) => handleSend(`roi ${kingBaseName(king.name)}`)} />
               ) : msg.sourceType === 'king' && msg.data ? (
                 <KingCard king={msg.data} />
+              ) : msg.sourceType === 'file_summary' && msg.data?.summary ? (
+                <DirectorySummaryCard summary={msg.data.summary} analysisText={msg.text} />
               ) : (
                 // whitespace-pre-wrap : respecte les retours à la ligne que l'IA écrit (utile pour
                 // les listes de plusieurs rendez-vous, un par ligne) tout en gardant le retour à la
@@ -1179,6 +1195,130 @@ function QuoteCard({ quote, fallbackText, note }) {
         large
       />
       {note && <p className="mt-3 text-xs text-gray-500">{note}</p>}
+    </div>
+  )
+}
+
+function FolderStatsIcon() {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" className="h-4 w-4" aria-hidden="true">
+      <path d="M3 7.5a1.5 1.5 0 0 1 1.5-1.5h4l2 2h8a1.5 1.5 0 0 1 1.5 1.5v9A1.5 1.5 0 0 1 18.5 20h-14A1.5 1.5 0 0 1 3 18.5v-11Z" />
+      <path d="M8 16.5v-4M12 16.5v-6M16 16.5v-2.5" />
+    </svg>
+  )
+}
+
+// Formatte une taille en octets en unité lisible (o / Ko / Mo / Go) — même logique que
+// formatSize() dans FileManager.jsx, dupliquée ici pour éviter un import cross-composant.
+function formatBytesSummary(bytes) {
+  if (!Number.isFinite(bytes)) return '—'
+  if (bytes >= 1024 ** 3) return `${(bytes / 1024 ** 3).toFixed(2)} Go`
+  if (bytes >= 1024 ** 2) return `${(bytes / 1024 ** 2).toFixed(1)} Mo`
+  if (bytes >= 1024) return `${(bytes / 1024).toFixed(1)} Ko`
+  return `${bytes} o`
+}
+
+// Couleur de barre par grande famille d'extension, pour repérer d'un coup d'oeil le type
+// dominant (code / documents / médias / données) dans la répartition du DirectorySummaryCard.
+const _EXT_COLOR_GROUPS = {
+  code: ['.js', '.jsx', '.ts', '.tsx', '.py', '.c', '.h', '.hpp', '.cpp', '.cs', '.rs', '.java', '.go', '.rb', '.php'],
+  doc: ['.md', '.txt', '.pdf', '.doc', '.docx', '.xls', '.xlsx', '.ppt', '.pptx'],
+  media: ['.png', '.jpg', '.jpeg', '.gif', '.svg', '.mp4', '.mp3', '.wav', '.webp'],
+  data: ['.json', '.csv', '.db', '.sqlite', '.xml', '.yaml', '.yml'],
+}
+function extensionColorClass(ext) {
+  if (_EXT_COLOR_GROUPS.code.includes(ext)) return 'bg-cyan-400'
+  if (_EXT_COLOR_GROUPS.doc.includes(ext)) return 'bg-violet-400'
+  if (_EXT_COLOR_GROUPS.media.includes(ext)) return 'bg-emerald-400'
+  if (_EXT_COLOR_GROUPS.data.includes(ext)) return 'bg-amber-400'
+  return 'bg-gray-400'
+}
+
+// Carte de compte rendu de dossier (source_type "file_summary", assistant fichiers — voir
+// services/file_assistant.py). Remplace l'affichage brut du markdown de Claude par des tuiles de
+// stats, une répartition par extension en barres et le top des fichiers les plus lourds ;
+// l'analyse textuelle de Claude reste consultable en dépliant "Voir l'analyse d'ARIA" (elle peut
+// contenir des remarques/recommandations que les chiffres seuls ne montrent pas).
+function DirectorySummaryCard({ summary, analysisText }) {
+  const [analysisOpen, setAnalysisOpen] = useState(false)
+  if (!summary) return <FormattedText text={analysisText} />
+
+  const { path, file_count = 0, folder_count = 0, total_size = 0, by_extension = [], largest_files = [], truncated } = summary
+  const maxExtCount = by_extension.length ? Math.max(...by_extension.map((item) => item.count)) : 0
+
+  return (
+    <div className="w-full min-w-0 max-w-2xl">
+      <div className="flex flex-col gap-3 border-b border-gray-600/60 pb-4 sm:flex-row sm:items-start">
+        <span className="w-fit rounded-lg bg-indigo-500/15 p-3 text-indigo-300"><FolderStatsIcon /></span>
+        <div className="min-w-0">
+          <p className="text-xs font-semibold uppercase tracking-wider text-indigo-300">Compte rendu de dossier</p>
+          <h3 className="mt-1 truncate text-xl font-semibold text-white">{path === '.' ? 'Accueil' : path}</h3>
+        </div>
+      </div>
+
+      <div className="mt-4 grid grid-cols-1 gap-3 min-[420px]:grid-cols-3">
+        <InfoMetric label="Fichiers" value={file_count.toLocaleString('fr-FR')} />
+        <InfoMetric label="Dossiers" value={folder_count.toLocaleString('fr-FR')} />
+        <InfoMetric label="Taille totale" value={formatBytesSummary(total_size)} />
+      </div>
+
+      {by_extension.length > 0 && (
+        <div className="mt-4 border-t border-gray-600/60 pt-4">
+          <p className="text-[11px] font-semibold uppercase tracking-wide text-gray-500">Répartition par type</p>
+          <div className="mt-2 grid gap-2">
+            {by_extension.slice(0, 8).map((item) => (
+              <div key={item.extension} className="flex items-center gap-3">
+                <span className="w-24 shrink-0 truncate text-xs font-medium text-gray-300">{item.extension}</span>
+                <div className="h-2 min-w-0 flex-1 overflow-hidden rounded-full bg-gray-900/60">
+                  <div
+                    className={`h-full rounded-full ${extensionColorClass(item.extension)}`}
+                    style={{ width: `${maxExtCount ? Math.max(6, (item.count / maxExtCount) * 100) : 0}%` }}
+                  />
+                </div>
+                <span className="w-10 shrink-0 text-right text-xs tabular-nums text-gray-400">{item.count}</span>
+              </div>
+            ))}
+          </div>
+          {by_extension.length > 8 && (
+            <p className="mt-2 text-xs text-gray-500">+ {by_extension.length - 8} autres types de fichiers</p>
+          )}
+        </div>
+      )}
+
+      {largest_files.length > 0 && (
+        <div className="mt-4 border-t border-gray-600/60 pt-4">
+          <p className="text-[11px] font-semibold uppercase tracking-wide text-gray-500">Fichiers les plus lourds</p>
+          <div className="mt-2 grid gap-1.5">
+            {largest_files.slice(0, 5).map((file) => (
+              <div key={file.path} className="grid min-w-0 grid-cols-[minmax(0,1fr)_auto] items-center gap-3 rounded-md bg-gray-900/40 px-3 py-1.5">
+                <span className="block min-w-0 truncate text-sm text-gray-300" title={file.path}>{file.path}</span>
+                <span className="shrink-0 text-xs tabular-nums text-gray-500">{formatBytesSummary(file.size)}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {truncated && (
+        <p className="mt-4 rounded-md border border-amber-700/60 bg-amber-950/30 px-3 py-2 text-xs text-amber-300">
+          Dossier volumineux : l'analyse s'est arrêtée après un grand nombre d'éléments, ces chiffres sont partiels.
+        </p>
+      )}
+
+      {analysisText && (
+        <div className="mt-4 border-t border-gray-600/60 pt-3">
+          <button
+            type="button"
+            onClick={() => setAnalysisOpen((open) => !open)}
+            className="text-xs font-medium text-cyan-300 hover:underline"
+          >
+            {analysisOpen ? "Masquer l'analyse d'ARIA" : "Voir l'analyse d'ARIA"}
+          </button>
+          {analysisOpen && (
+            <p className="mt-2 whitespace-pre-wrap text-sm leading-6 text-gray-300"><FormattedText text={analysisText} /></p>
+          )}
+        </div>
+      )}
     </div>
   )
 }

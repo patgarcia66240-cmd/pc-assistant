@@ -158,3 +158,119 @@ def test_sqlite_database_preview(tmp_path, monkeypatch):
         res = client.get("/api/files/content?path=fake.db")
         assert res.status_code == 200
         assert res.json()["type"] == "binary"
+
+
+def test_search_folder_file_rename_delete_endpoints(tmp_path, monkeypatch):
+    """Nouveaux endpoints pilotables par l'assistant fichiers (chat/vocal) :
+    recherche par motif glob, création de dossier/fichier, renommage, suppression."""
+    test_files_root = tmp_path / "files_root"
+    test_files_root.mkdir()
+    (test_files_root / "notes.txt").write_text("un fichier existant", encoding="utf-8")
+    (test_files_root / "report.pdf").write_bytes(b"%PDF-1.4")
+
+    monkeypatch.setattr(FileService, "root", test_files_root)
+
+    with TestClient(app) as client:
+        # Recherche glob
+        res = client.get("/api/files/search?pattern=*.txt")
+        assert res.status_code == 200
+        matches = res.json()["matches"]
+        assert "notes.txt" in matches
+        assert "report.pdf" not in matches
+
+        # Création de dossier
+        res = client.post("/api/files/folder", json={"path": "docs"})
+        assert res.status_code == 200
+        assert (test_files_root / "docs").is_dir()
+
+        # Création de dossier déjà existant -> conflit
+        res = client.post("/api/files/folder", json={"path": "docs"})
+        assert res.status_code == 409
+
+        # Création de fichier avec contenu
+        res = client.post("/api/files/file", json={"path": "docs/todo.txt", "content": "acheter du pain"})
+        assert res.status_code == 200
+        assert (test_files_root / "docs" / "todo.txt").read_text(encoding="utf-8") == "acheter du pain"
+
+        # Renommage
+        res = client.post("/api/files/rename", json={"path": "docs/todo.txt", "new_name": "liste.txt"})
+        assert res.status_code == 200
+        assert (test_files_root / "docs" / "liste.txt").exists()
+        assert not (test_files_root / "docs" / "todo.txt").exists()
+
+        # Renommage d'un fichier inexistant -> 404
+        res = client.post("/api/files/rename", json={"path": "docs/absent.txt", "new_name": "x.txt"})
+        assert res.status_code == 404
+
+        # Suppression
+        res = client.delete("/api/files/delete?path=docs/liste.txt")
+        assert res.status_code == 200
+        assert not (test_files_root / "docs" / "liste.txt").exists()
+
+        # Suppression de la racine interdite
+        res = client.delete("/api/files/delete?path=.")
+        assert res.status_code == 400
+
+
+def test_summary_endpoint(tmp_path, monkeypatch):
+    """Compte rendu récursif d'un dossier (nombre de fichiers, taille, répartition par
+    extension) — utilisé par l'assistant fichiers pour répondre à "fais-moi un compte rendu"."""
+    test_files_root = tmp_path / "files_root"
+    test_files_root.mkdir()
+    (test_files_root / "a.txt").write_text("hello")
+    (test_files_root / "sub").mkdir()
+    (test_files_root / "sub" / "b.py").write_text("print(1)")
+
+    monkeypatch.setattr(FileService, "root", test_files_root)
+
+    with TestClient(app) as client:
+        res = client.get("/api/files/summary")
+        assert res.status_code == 200
+        data = res.json()
+        assert data["file_count"] == 2
+        assert data["folder_count"] == 1
+        assert any(item["extension"] == ".py" for item in data["by_extension"])
+
+        # Chemin qui n'est pas un dossier -> 400
+        res = client.get("/api/files/summary?path=a.txt")
+        assert res.status_code == 400
+
+
+def test_file_chat_handler_matches():
+    """Détection des demandes en langage naturel destinées à l'assistant fichiers du chat/vocal
+    (backend/plugins/files/chat_handler.py) — pas d'appel réel à Claude ici."""
+    from plugins.files.chat_handler import matches
+
+    assert matches("ouvre le fichier rapport.pdf")
+    assert matches("trouve-moi le fichier budget dans mes documents")
+    assert matches("renomme le dossier Photos en Vacances")
+    assert matches("supprime ce fichier")
+    assert matches("filtre les fichiers par *.csv")
+    assert not matches("quel temps fait-il aujourd'hui ?")
+    assert not matches("raconte-moi une blague")
+
+
+def test_file_assistant_accueil_alias(tmp_path, monkeypatch):
+    """« Accueil » est le raccourci affiché dans l'interface pour la racine (path=".") : l'assistant
+    fichiers doit le reconnaître au lieu de chercher un dossier littéralement nommé "accueil"."""
+    import asyncio
+
+    from services import file_assistant
+
+    test_files_root = tmp_path / "files_root"
+    test_files_root.mkdir()
+    (test_files_root / "a.txt").write_text("hello")
+    monkeypatch.setattr(FileService, "root", test_files_root)
+
+    async def run_all():
+        nav = {}
+        result = await file_assistant._execute_tool("list_directory", {"path": "Accueil"}, nav)
+        assert nav["path"] == "."
+        assert result["count"] == 1
+
+        nav2 = {}
+        summary = await file_assistant._execute_tool("summarize_directory", {"path": "ACCUEIL"}, nav2)
+        assert nav2["path"] == "."
+        assert summary["file_count"] == 1
+
+    asyncio.run(run_all())
