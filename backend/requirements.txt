@@ -10,6 +10,9 @@ aiosqlite>=0.19,<1
 psutil>=5.9,<8
 aiofiles>=23.2,<26
 python-multipart>=0.0.6,<1
+# Client WebSocket du plugin android_bridge (backend/plugins/android_bridge/client.py), pour
+# la passerelle vers l'app compagnon Android (voir android/).
+websockets>=13.0,<14
 # Aperçu des documents Office dans l'onglet Fichiers (Word/Excel/PowerPoint).
 python-docx>=1.1,<2
 openpyxl>=3.1,<4

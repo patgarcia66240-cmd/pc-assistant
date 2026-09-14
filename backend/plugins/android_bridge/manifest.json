@@ -1,0 +1,18 @@
+{
+  "id": "android_bridge",
+  "name": "Téléphone Android",
+  "version": "0.1.0",
+  "description": "Passerelle vers un smartphone Android : se connecte en WebSocket (réseau local) à l'app compagnon ARIA Phone Bridge (Kotlin, voir android/) pour lire ses informations — contacts en premier, puis infos appareil/batterie. Appairage par jeton affiché dans l'app Android, jamais de service exposé sur Internet.",
+  "router_prefix": "/api/android",
+  "enabled_by_default": true,
+  "lifecycle": true,
+  "frontend": {
+    "component": "AndroidBridge",
+    "tab": {
+      "id": "android_bridge",
+      "label": "Téléphone",
+      "icon": "phone",
+      "order": 55
+    }
+  }
+}

@@ -57,6 +57,15 @@ WhatsApp repose sur Baileys, une bibliothèque non officielle fonctionnant comme
 L'utilisation d'un numéro dédié est recommandée. Consulte
 [`whatsapp-bridge/README.md`](whatsapp-bridge/README.md) avant de l'activer.
 
+### Passerelle Android
+
+- App compagnon Kotlin (`android/`) : serveur WebSocket local sur le téléphone, appairé par
+  jeton depuis l'onglet **Téléphone** d'ARIA.
+- Lecture à la demande des contacts, puis des infos appareil (batterie, stockage, RAM...).
+- Architecture de capacités extensible côté Android (SMS, notifications, localisation... à
+  ajouter au même modèle, voir [`android/README.md`](android/README.md)).
+- Connexion réseau local uniquement (même Wi-Fi), jamais exposée sur Internet.
+
 ## Architecture
 
 ![Architecture complète de PC Assistant ARIA](docs/images/aria-architecture.svg)
@@ -71,6 +80,7 @@ pc-assistant/
 ├── frontend/            Interface React, Vite et Tailwind CSS
 ├── whatsapp-bridge/     Pont Node.js entre WhatsApp et FastAPI
 ├── desktop/             Application de bureau Tauri
+├── android/             App compagnon Android (Kotlin) : passerelle WebSocket vers le téléphone
 └── ETAT_APPLICATION.md  Description technique détaillée
 ```
 
@@ -221,6 +231,7 @@ Par défaut, garde l'API liée à `127.0.0.1` et n'expose pas les ports sur Inte
 
 - [`ETAT_APPLICATION.md`](ETAT_APPLICATION.md) : architecture et état détaillé des fonctions ;
 - [`whatsapp-bridge/README.md`](whatsapp-bridge/README.md) : installation et précautions WhatsApp ;
+- [`android/README.md`](android/README.md) : app compagnon Android, appairage et sécurité ;
 - [`backend/.env.example`](backend/.env.example) : toutes les variables de configuration.
 
 ## Licence

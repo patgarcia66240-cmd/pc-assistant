@@ -1,0 +1,5 @@
+<resources>
+    <string name="app_name">ARIA Phone Bridge</string>
+    <string name="notification_channel_name">Passerelle ARIA</string>
+    <string name="notification_running">Passerelle ARIA active — %1$s:%2$d</string>
+</resources>

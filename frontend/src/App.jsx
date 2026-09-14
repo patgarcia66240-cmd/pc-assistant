@@ -24,6 +24,7 @@ function MenuIcon({ type }) {
     image: <><rect x="3" y="4" width="18" height="16" rx="2" /><circle cx="9" cy="9" r="2" /><path d="m4 17 5-5 3.5 3.5 2.5-2.5 5 5" /></>,
     message: <><path d="M4 5.5h13v8.5H9.5L6 17.5V14H4Z" /><path d="M12.5 9h6.5v7.5H16v3l-3.5-3H10" /></>,
     plugins: <><rect x="4" y="4" width="16" height="16" rx="2" /><path d="M9 9h1.6v1.6H9zM13.4 9H15v1.6h-1.6zM9 13.4h1.6V15H9zM13.4 13.4H15V15h-1.6z" /></>,
+    phone: <><rect x="7" y="2.5" width="10" height="19" rx="2" /><path d="M11 18.5h2" /></>,
   }
 
   return (

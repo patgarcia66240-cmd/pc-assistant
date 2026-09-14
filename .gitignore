@@ -67,3 +67,13 @@ run-logs/
 
 # Session WhatsApp (pont Node.js, whatsapp-bridge/) — credentials de l'appareil lié, jamais commit
 whatsapp-bridge/auth/
+
+# Appairage avec le téléphone Android (host/port/jeton, voir plugins/android_bridge/store.py)
+backend/data/android_bridge.json
+
+# Android (android/) : artefacts Gradle et config locale au poste (chemin du SDK)
+android/**/build/
+android/.gradle/
+android/local.properties
+android/*.iml
+android/.idea/
