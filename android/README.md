@@ -1,5 +1,7 @@
 # ARIA Phone Bridge (Android)
 
+![Passerelle Android d'ARIA](../docs/images/aria-android-bridge.svg)
+
 App compagnon Kotlin qui expose une passerelle WebSocket en réseau local : ARIA (le backend
 FastAPI, plugin `backend/plugins/android_bridge/`) s'y connecte pour lire des informations du
 téléphone — les contacts pour commencer, puis les infos appareil (batterie, stockage, RAM...).

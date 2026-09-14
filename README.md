@@ -59,6 +59,8 @@ L'utilisation d'un numéro dédié est recommandée. Consulte
 
 ### Passerelle Android
 
+![Passerelle Android d'ARIA](docs/images/aria-android-bridge.svg)
+
 - App compagnon Kotlin (`android/`) : serveur WebSocket local sur le téléphone, appairé par
   jeton depuis l'onglet **Téléphone** d'ARIA.
 - Lecture à la demande des contacts, puis des infos appareil (batterie, stockage, RAM...).
